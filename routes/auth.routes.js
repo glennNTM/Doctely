@@ -1,12 +1,13 @@
 import { Router } from "express"
+import { logIn, logOut, register } from "../controllers/auth.controllers.js"
 
 const authRouter = Router()
 
-authRouter.post('/login', (req, res) => res.send({ title: 'Route de connexion' }))
+authRouter.post('/login', logIn)
 
-authRouter.post('/register', (req, res) => res.send({ title: 'Route d\'inscription' }))
+authRouter.post('/register', register)
 
-authRouter.get('/logout', (req, res) => res.send({ title: 'Route de déconnexion' }))
+authRouter.post('/logout', logOut)
 
 authRouter.get('/me', (req, res) => res.send({ title: 'Route de récupération des informations utilisateur' }))
 
