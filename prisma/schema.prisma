@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Groupesanguin {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+  EXPIREE
+}
+
+enum TypeRdv {
+  EN_PERSONNE
+  TELECONSULTATION
+}
+
+enum StatutRdv {
+  PLANIFIE
+  REALISE
+  ANNULE
+}
+
+enum Specialite {
+  GENERALISTE
+  CARDIOLOGUE
+  DERMATOLOGUE
+  GYNECOLOGUE
+  PSYCHOLOGUE
+  NEUROLOGUE
+  OPHTALMOLOGUE
+  PEDIATRE
+  DENTISTE
+}
+
+enum Genre {
+  HOMME
+  FEMME
+}
+
+enum TypeUtilisateur {
+  PATIENT
+  MEDECIN
+  ADMIN
+}
+
+model Patient {
+  id              Int               @id @default(autoincrement())
+  // Champs de base
+  nom             String
+  prenom          String
+  email           String            @unique
+  motDePasse      String
+  telephone       String?
+  adresse         String?
+  dateCreation    DateTime          @default(now())
+  
+  // Champs spécifiques
+  groupeSanguin   Groupesanguin?
+  dateNaissance   DateTime?
+  genre           Genre?
+  historiqueMedical String?
+
+  // Relations
+  demandes        DemandeConsultation[]
+  rendezVous      Rendezvous[]
+  notifications   Notification[]
+}
+
+model Medecin {
+  id              Int               @id @default(autoincrement())
+  // Champs de base
+  nom             String
+  prenom          String
+  email           String            @unique
+  motDePasse      String
+  telephone       String?
+  adresse         String?
+  dateCreation    DateTime          @default(now())
+  
+  // Champs spécifiques
+  specialite      Specialite
+  certificat      String
+
+  // Relations
+  demandesAcceptees DemandeConsultation[] @relation("MedecinAccepteur")
+  rendezVous      Rendezvous[]
+  notifications   Notification[]
+}
+
+model Admin {
+  id              Int               @id @default(autoincrement())
+  // Champs de base
+  nom             String
+  prenom          String
+  email           String            @unique
+  motDePasse      String
+  telephone       String?
+  adresse         String?
+  dateCreation    DateTime          @default(now())
+  
+  // Relations
+  demandesMedecins DemandeMedecin[]
+  notifications   Notification[]
+}
+
+model DemandeConsultation {
+  id              Int               @id @default(autoincrement())
+  patientId       Int
+  patient         Patient           @relation(fields: [patientId], references: [id])
+  motif           String
+  specialite      Specialite
+  statut          StatutDemande @default(EN_ATTENTE)
+  dateDemande     DateTime          @default(now())
+  medecinId       Int?
+  medecin         Medecin?          @relation("MedecinAccepteur", fields: [medecinId], references: [id])
+
+  rendezVous      Rendezvous[]
+}
+
+model Rendezvous {
+  id              Int               @id @default(autoincrement())
+  date            DateTime          // Date du rendez-vous (ex : 2025-07-09)
+  heure           String            // Heure (ex : "14:30")
+  statut          StatutRdv?        @default(PLANIFIE)
+  type            TypeRdv           @default(EN_PERSONNE)
+  motif           String
+  specialite      Specialite
+  patientId       Int
+  medecinId       Int
+  demandeId       Int?
+
+  patient         Patient           @relation(fields: [patientId], references: [id])
+  medecin         Medecin           @relation(fields: [medecinId], references: [id])
+  demande         DemandeConsultation? @relation(fields: [demandeId], references: [id])
+  ordonnance      Ordonnance?
+}
+
+
+model Ordonnance {
+  id              Int               @id @default(autoincrement())
+  contenu         String?
+  dateCreation    DateTime          @default(now())
+  rendezVousId    Int               @unique
+  rendezVous      Rendezvous        @relation(fields: [rendezVousId], references: [id])
+}
+
+model Notification {
+  id              Int               @id @default(autoincrement())
+  date            DateTime          @default(now())
+  type            String?
+  contenu         String?
+  lue             Boolean           @default(false)
+  destinataireId  Int
+  typeDestinataire TypeUtilisateur
+
+  // Relations conditionnelles
+  patient         Patient?          @relation(fields: [destinataireId], references: [id])
+  medecin         Medecin?          @relation(fields: [destinataireId], references: [id])
+  admin           Admin?            @relation(fields: [destinataireId], references: [id])
+}
+
+model DemandeMedecin {
+  id              Int               @id @default(autoincrement())
+  nom             String
+  prenom          String
+  email           String
+  telephone       String?
+  adresse         String?
+  specialite      Specialite
+  certificat      String
+  motivation      String?
+  statut          StatutDemande @default(EN_ATTENTE)
+  dateDemande     DateTime          @default(now())
+  dateValidation  DateTime?
+  adminId         Int?
+  admin           Admin?            @relation(fields: [adminId], references: [id])
+}
