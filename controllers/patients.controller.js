@@ -79,14 +79,13 @@ export const getPatientById = async (req, res) => {
     }
 }
 
-
 /**
  * @route   PUT /api/patients/:id
  * @param   {string} id - ID du patient à récupérer
  * @desc    Met à jour un patient spécifique par son ID
 * @access  Patient uniquement
  */
-export const updatePatient = async (req, res) => { 
+export const updatePatient = async (req, res) => {
     try {
         // ✅ Récupération de l'ID depuis les paramètres d'URL et conversion en entier
         const patientId = parseInt(req.params.id, 10)
@@ -123,21 +122,24 @@ export const updatePatient = async (req, res) => {
             data: updatedPatient,
         })
     } catch (error) {
+        console.error("Erreur PUT /api/patients/:id :", error);
+
         return res.status(500).json({
             success: false,
             message: "Erreur interne du serveur. Impossible de mettre à jour le patient.",
         })
     }
- }
+}
+
 /**
  * @route   DELETE /api/patients/:id
  * @param   {string} id - ID du patient à récupérer
  * @desc    Supprime un patient spécifique par son ID
 * @access  Admin uniquement
  */
-export const deletePatient = async (req, res) => { 
+export const deletePatient = async (req, res) => {
     try {
-         // ✅ Récupération de l'ID depuis les paramètres d'URL et conversion en entier
+        // ✅ Récupération de l'ID depuis les paramètres d'URL et conversion en entier
         const patientId = parseInt(req.params.id, 10)
 
         // 🔍 Vérification de la présence de l'ID
@@ -176,6 +178,6 @@ export const deletePatient = async (req, res) => {
             success: false,
             message: "Erreur interne du serveur. Impossible de supprimer le patient.",
         })
-        
+
     }
- }
+}

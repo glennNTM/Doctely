@@ -1,10 +1,13 @@
-import { Router } from "express";
+import { Router } from "express"
+import { getAdmins, createAdmin, deleteAdmin } from "../controllers/admin.controller.js"
 
 const adminRouter = Router();
 
-adminRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les administrateurs'})})
+adminRouter.get('/', getAdmins)
 
-adminRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un administrateur'})})
+adminRouter.post('/', createAdmin)
+
+adminRouter.delete('/:id', deleteAdmin)
 
 
 export default adminRouter

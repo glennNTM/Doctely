@@ -23,7 +23,7 @@ app.use(cookieParser())
 // Routes
 app.use('/api/medecins', medecinsRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/admin', adminRouter)
+app.use('/api/admins', adminRouter)
 app.use('/api/patients', patientsRouter)
 app.use('/api/demande-consultation', demandeConsultationRouter)
 app.use('/api/notifications', notificationsRouter)
