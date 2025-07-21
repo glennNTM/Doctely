@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 
 const prisma = new PrismaClient()
-dotenv.config(); // Charge les variables d'environnement
+dotenv.config() // Charge les variables d'environnement
 
 /**
  * Connexion d’un utilisateur (patient, médecin ou admin)

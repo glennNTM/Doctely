@@ -8,6 +8,8 @@ medecinsRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupé
 
 medecinsRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un medecin'})})
 
+medecinsRouter.get('/?specialite=:specialite', (req, res) => {const { specialite } = req.query; res.send({ title: `Route pour récupérer les medecins par spécialité: ${specialite}` })})
+
 medecinsRouter.put('/:id', (req, res) => {res.send({ title: 'Route pour mettre à jour un medecin'})})
 
 medecinsRouter.delete('/:id', (req, res) => {res.send({ title: 'Route pour supprimer un medecin'})})

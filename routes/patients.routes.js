@@ -1,15 +1,14 @@
 import { Router } from "express"
+import { getPatients, getPatientById, updatePatient, deletePatient } from "../controllers/patients.controller.js"
 
 const patientsRouter = Router()
 
-patientsRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les patients'})})
+patientsRouter.get('/', getPatients)
 
-patientsRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupérer un patient par son ID'})})
+patientsRouter.get('/:id', getPatientById)
 
-patientsRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un patient'})})
+patientsRouter.put('/:id', updatePatient)
 
-patientsRouter.put('/:id', (req, res) => {res.send({ title: 'Route pour mettre à jour un patient'})})
-
-patientsRouter.delete('/:id', (req, res) => {res.send({ title: 'Route pour supprimer un patient'})})
+patientsRouter.delete('/:id', deletePatient)
 
 export default patientsRouter

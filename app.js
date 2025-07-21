@@ -1,7 +1,6 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { PORT } from './config/env.js'
-import errorMiddleware from './middlewares/error.middleware.js'
 import medecinsRouter from './routes/medecins.routes.js'
 import authRouter from './routes/auth.routes.js'
 import adminRouter from './routes/admin.routes.js'
@@ -25,7 +24,7 @@ app.use(cookieParser())
 app.use('/api/medecins', medecinsRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/admin', adminRouter)
-app.use('/api/patient', patientsRouter)
+app.use('/api/patients', patientsRouter)
 app.use('/api/demande-consultation', demandeConsultationRouter)
 app.use('/api/notifications', notificationsRouter)
 app.use('/api/ordonnances', ordannancesRouter)
@@ -37,6 +36,5 @@ app.listen(PORT, () => {
   console.log(`Le server tourne sur http://localhost:${PORT}`)})
 
 
-app.use(errorMiddleware)
 
 export default app
