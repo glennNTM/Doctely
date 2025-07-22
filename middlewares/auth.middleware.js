@@ -70,21 +70,31 @@ export const adminOnly = (req, res, next) => {
     return res.status(403).json({
       success: false,
       message: 'Accès refusé. Réservé aux administrateurs.',
-    });
+    })
   }
-
   next()
 }
 
 export const medecinOnly = (req, res, next) => {
-  const user = req.user;
+  const user = req.user
 
   if (!user || user.role !== 'MEDECIN') {
     return res.status(403).json({
       success: false,
       message: 'Accès refusé. Réservé aux médecins.',
-    });
+    })
   }
+  next()
+}
 
+export const patientOnly = (req, res, next) =>{
+    const user = req.user
+  
+  if (!user || user.role !== 'PATIENT') {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès refusé. Réservé aux patients.',
+    })
+  }
   next()
 }

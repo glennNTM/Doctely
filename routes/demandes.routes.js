@@ -1,11 +1,17 @@
 import { Router } from "express"
+import { submitConsultation, getConsultations, acceptConsultation, rejectConsultation } from "../controllers/demandeConsultation.controller.js"
+import { authenticate, medecinOnly, patientOnly } from "../middlewares/auth.middleware.js"
+
 
 const demandeConsultationRouter = Router()
 
-demandeConsultationRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer une demande de consultation'})})
+demandeConsultationRouter.post('/', authenticate , patientOnly, submitConsultation)
 
-demandeConsultationRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les demandes de consultation'})})
+demandeConsultationRouter.get('/me', authenticate, medecinOnly, getConsultations)
 
-demandeConsultationRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupérer une demande de consultation par son ID'})})
+demandeConsultationRouter.put('/:id/accept', authenticate, medecinOnly, acceptConsultation )
+
+demandeConsultationRouter.put('/:id/reject', authenticate, medecinOnly, rejectConsultation )
+
 
 export default demandeConsultationRouter
