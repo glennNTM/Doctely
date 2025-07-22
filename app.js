@@ -14,7 +14,6 @@ import  demandeMedecinRouter  from './routes/demandesMedecins.routes.js'
 const app = express()
 
 
-
 // Middleware pour gerer le format des donnees
 app.use(express.json())
 

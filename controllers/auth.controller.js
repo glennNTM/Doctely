@@ -71,7 +71,7 @@ export const logIn = async (req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours en ms
-        });
+        })
 
         return res.status(200).json({
             message: 'Connexion réussie',
@@ -172,3 +172,91 @@ export const register = async (req, res) => {
 
     }
 }
+
+/**
+ * @desc    Récupérer les infos du profil de l'utilisateur connecté (Patient, Médecin ou Admin)
+ * @route   GET /api/auth/me
+ * @access  Privé
+ */
+export const getMe = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || !user.role || !user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Non autorisé. Jeton invalide ou informations manquantes.',
+      });
+    }
+
+    let userInDb = null;
+
+    switch (user.role) {
+      case 'PATIENT':
+        userInDb = await prisma.patient.findUnique({
+          where: { id: user.id },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            dateNaissance: true,
+            telephone: true,
+            createdAt: true,
+          },
+        });
+        break;
+
+      case 'MEDECIN':
+        userInDb = await prisma.medecin.findUnique({
+          where: { id: user.id },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            specialite: true,
+            telephone: true,
+          },
+        });
+        break;
+
+      case 'ADMIN':
+        userInDb = await prisma.admin.findUnique({
+          where: { id: user.id },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            createdAt: true,
+          },
+        });
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Rôle utilisateur inconnu.',
+        });
+    }
+
+    if (!userInDb) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: { role: user.role, ...userInDb },
+    });
+  } catch (error) {
+    console.error('Erreur dans GET /me :', error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération de l'utilisateur.",
+    });
+  }
+};

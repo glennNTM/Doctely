@@ -6,4 +6,4 @@ notificationsRouter.get('/', (req, res) => {res.send({ title: 'Route pour récup
 
 notificationsRouter.put('/:id/lu', (req, res) => {res.send({ title: 'Route pour marquer une notification comme lue' })})
 
-export default notificationsRouter;
+export default notificationsRouter
