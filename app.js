@@ -9,6 +9,7 @@ import demandeConsultationRouter from './routes/demandes.routes.js'
 import notificationsRouter from './routes/notifications.routes.js'
 import ordannancesRouter from './routes/ordonnances.routes.js'
 import rdvRouter from './routes/rendezvous.routes.js'
+import  demandeMedecinRouter  from './routes/demandesMedecins.routes.js'
 
 const app = express()
 
@@ -24,6 +25,7 @@ app.use(cookieParser())
 app.use('/api/medecins', medecinsRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/admins', adminRouter)
+app.use('/api/demande-medecin', demandeMedecinRouter)
 app.use('/api/patients', patientsRouter)
 app.use('/api/demande-consultation', demandeConsultationRouter)
 app.use('/api/notifications', notificationsRouter)

@@ -24,9 +24,9 @@ enum Groupesanguin {
 
 enum StatutDemande {
   EN_ATTENTE
-  ACCEPTEE
-  REFUSEE
-  EXPIREE
+  ACCEPTE
+  REFUSE
+  EXPIRE
 }
 
 enum TypeRdv {
@@ -190,7 +190,7 @@ model DemandeMedecin {
   certificat      String
   motivation      String?
   statut          StatutDemande @default(EN_ATTENTE)
-  dateDemande     DateTime          @default(now())
+  dateDemande     DateTime?          @default(now())
   dateValidation  DateTime?
   adminId         Int?
   admin           Admin?            @relation(fields: [adminId], references: [id])
