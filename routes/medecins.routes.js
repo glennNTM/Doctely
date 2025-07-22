@@ -1,17 +1,16 @@
 import { Router } from "express"
+import { getMedecins, createMedecin, deleteMedecin, getMedecinById, getMedecinsBySpecialite } from "../controllers/medecins.controller.js"
 
 const medecinsRouter = Router()
 
-medecinsRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les medecins'})})
+medecinsRouter.get('/', getMedecins)
 
-medecinsRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupérer un medecin par son ID'})})
+medecinsRouter.get('/:id', getMedecinById)
 
-medecinsRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un medecin'})})
+medecinsRouter.post('/', createMedecin)
 
-medecinsRouter.get('/?specialite=:specialite', (req, res) => {const { specialite } = req.query; res.send({ title: `Route pour récupérer les medecins par spécialité: ${specialite}` })})
+medecinsRouter.delete('/:id', deleteMedecin)
 
-medecinsRouter.put('/:id', (req, res) => {res.send({ title: 'Route pour mettre à jour un medecin'})})
-
-medecinsRouter.delete('/:id', (req, res) => {res.send({ title: 'Route pour supprimer un medecin'})})
+medecinsRouter.get('/:specialite', getMedecinsBySpecialite)  
 
 export default medecinsRouter
