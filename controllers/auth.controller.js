@@ -229,7 +229,6 @@ export const getMe = async (req, res) => {
             nom: true,
             prenom: true,
             email: true,
-            createdAt: true,
           },
         });
         break;

@@ -1,15 +1,25 @@
-import { Router } from "express";
+import { Router } from "express"
+import { createRdv, getRdv, getRdvByStatut,getRdvByPatient, getRdvByMedecin, createRdvVideo, joinRdvVideo, cancelRdv } from "../controllers/rdv.controller.js"
+import { medecinOnly, authenticate, adminOnly  } from "../middlewares/auth.middleware.js"
 
-const rdvRouter = Router();
+const rdvRouter = Router()
 
-rdvRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un rendez-vous'})})
+rdvRouter.post('/', authenticate, medecinOnly, createRdv)
 
-rdvRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les rendez-vous'})})
+rdvRouter.get('/', authenticate, adminOnly, getRdv)
 
-rdvRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupérer un rendez-vous par son ID'})})
+rdvRouter.get('/?statut=XXX', getRdvByStatut )
 
-rdvRouter.put('/:id', (req, res) => {res.send({ title: 'Route pour mettre à jour un rendez-vous'})})
+rdvRouter.get('/patient/me', getRdvByPatient)
 
-rdvRouter.delete('/:id', (req, res) => {res.send({ title:'Route pour supprimer un rendez-vous'})})
+rdvRouter.get('/medecin/me', authenticate, medecinOnly, getRdvByMedecin)
+
+rdvRouter.put('/:id/cancel', authenticate, medecinOnly, cancelRdv)
+
+rdvRouter.post('/:id/video', createRdvVideo)
+
+rdvRouter.get('/:id/video', joinRdvVideo)
+
+
 
 export default rdvRouter
