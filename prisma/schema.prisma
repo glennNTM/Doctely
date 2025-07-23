@@ -157,12 +157,16 @@ model Rendezvous {
 
 
 model Ordonnance {
-  id              Int               @id @default(autoincrement())
-  contenu         String?
-  dateCreation    DateTime          @default(now())
-  rendezVousId    Int               @unique
-  rendezVous      Rendezvous        @relation(fields: [rendezVousId], references: [id])
+  id              Int        @id @default(autoincrement())
+  contenu         String?    // Texte brut ou HTML de l’ordonnance
+  format          String?    // Type de contenu (ex: "text", "html", "pdf")
+  fichierUrl      String?    // URL de téléchargement si fichier PDF généré
+  codeQr          String?    // Code unique (ou URL) encodé dans un QR pour vérification en pharmacie
+  dateCreation    DateTime   @default(now())
+  rendezVousId    Int        @unique
+  rendezVous      Rendezvous @relation(fields: [rendezVousId], references: [id])
 }
+
 
 model Notification {
   id              Int               @id @default(autoincrement())
