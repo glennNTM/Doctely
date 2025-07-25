@@ -1,9 +1,16 @@
 import { Router } from "express";
+import { getNotifications, putNotificationToRead, deleteNotification } from "../controllers/notifications.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const notificationsRouter = Router();
 
-notificationsRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les notifications' })})
+// Route pour récupérer les notifications de l'utilisateur connecté
+notificationsRouter.get('/me', authenticate, getNotifications);
 
-notificationsRouter.put('/:id/lu', (req, res) => {res.send({ title: 'Route pour marquer une notification comme lue' })})
+// Route pour marquer une notification comme lue
+notificationsRouter.put('/:id/lu', authenticate, putNotificationToRead);
+
+// Route pour supprimer une notification
+notificationsRouter.delete('/:id', authenticate, deleteNotification);
 
 export default notificationsRouter

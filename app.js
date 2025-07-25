@@ -7,12 +7,16 @@ import adminRouter from './routes/admin.routes.js'
 import patientsRouter from './routes/patients.routes.js'
 import demandeConsultationRouter from './routes/demandes.routes.js'
 import notificationsRouter from './routes/notifications.routes.js'
-import ordannancesRouter from './routes/ordonnances.routes.js'
+import ordonnancesRouter from './routes/ordonnances.routes.js'
 import rdvRouter from './routes/rendezvous.routes.js'
 import  demandeMedecinRouter  from './routes/demandesMedecins.routes.js'
+import http from "http"
+import { initSocket } from "./config/socket.js"
 
 const app = express()
 
+const server = http.createServer(app); // Création du serveur HTTP
+initSocket(server); // Initialisation de Socket.IO
 
 // Middleware pour gerer le format des donnees
 app.use(express.json())
@@ -28,14 +32,12 @@ app.use('/api/demande-medecin', demandeMedecinRouter)
 app.use('/api/patients', patientsRouter)
 app.use('/api/demande-consultation', demandeConsultationRouter)
 app.use('/api/notifications', notificationsRouter)
-app.use('/api/ordonnances', ordannancesRouter)
+app.use('/api/ordonnances', ordonnancesRouter)
 app.use('/api/rendez-vous', rdvRouter)
 
 app.get('/', (req, res) =>{res.send("Bienvenue sur l'API de Doctely")})
 
 app.listen(PORT, () => {
-  console.log(`Le server tourne sur http://localhost:${PORT}`)})
-
-
+  console.log(`Le serveur tourne sur http://localhost:${PORT}`)})
 
 export default app
