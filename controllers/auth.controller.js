@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 import { PrismaClient } from '../generated/prisma/index.js'
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 
 
 const prisma = new PrismaClient()
@@ -62,20 +62,12 @@ export const logIn = async (req, res) => {
             },
             JWT_SECRET,
             { expiresIn: '7d' }
-        );
-
-        // Stocker le JWT dans un cookie sécurisé
-        res.cookie('token', token, {
-            httpOnly: true,
-            // eslint-disable-next-line no-undef
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours en ms
-        })
+        )
+        // Le token sera stocke dans le local storage
 
         return res.status(200).json({
             message: 'Connexion réussie',
-            token,
+            token, // à stocker dans localStorage côté frontend
             utilisateur: {
                 id: utilisateur.id,
                 nom: utilisateur.nom,
@@ -116,8 +108,11 @@ export const logOut = async (req, res) => {
  * @access Public
  */
 export const register = async (req, res) => {
+    console.log("--- [BACKEND] Début du contrôleur register ---");
     try {
-        const { nom, prenom, email, motDePasse, telephone, adresse, date_naissance, genre, groupeSanguin, historique_medical } = req.body
+        // On s'attend à recevoir les champs en camelCase depuis le frontend
+        console.log("Corps de la requête reçu:", req.body);
+        const { nom, prenom, email, motDePasse, telephone, adresse, dateNaissance, genre, groupeSanguin, historiqueMedical } = req.body
 
         // Vérification des champs requis
         if (!nom || !prenom || !email || !motDePasse) {
@@ -132,22 +127,31 @@ export const register = async (req, res) => {
 
         // Hash du mot de passe
         const hashedPassword = await bcrypt.hash(motDePasse, 10)
+        console.log("Mot de passe hashé.");
 
+        const dataToCreate = {
+            nom,
+            prenom,
+            email,
+            motDePasse: hashedPassword,
+            telephone,
+            adresse,
+            // On s'assure que le nom du champ correspond au schéma Prisma (camelCase)
+            dateNaissance: dateNaissance ? new Date(dateNaissance) : null,
+            genre,
+            groupeSanguin,
+            historiqueMedical
+        };
+
+        console.log("Données envoyées à Prisma pour création:", dataToCreate);
+        
         // Création du patient
         const newPatient = await prisma.patient.create({
-            data: {
-                nom,
-                prenom,
-                email,
-                motDePasse: hashedPassword,
-                telephone,
-                adresse,
-                date_naissance,
-                genre,
-                groupeSanguin,
-                historique_medical
-            }
+            data: dataToCreate
         })
+
+        console.log("Patient créé avec succès. ID:", newPatient.id);
+
         return res.status(201).json({
             message: 'Inscription réussie',
             patient: {
@@ -157,18 +161,22 @@ export const register = async (req, res) => {
                 email: newPatient.email,
                 telephone: newPatient.telephone,
                 adresse: newPatient.adresse,
-                date_naissance: newPatient.date_naissance,
+                dateNaissance: newPatient.dateNaissance,
                 genre: newPatient.genre,
                 groupeSanguin: newPatient.groupeSanguin,
-                historique_medical: newPatient.historique_medical
+                historiqueMedical: newPatient.historiqueMedical
             }
 
 
 
         })
     } catch (error) {
-        console.error('Erreur lors de l\'inscription :', error);
-        return res.status(500).json({ message: 'Erreur serveur pendant l\'inscription.' });
+        console.error('--- [BACKEND] ERREUR DANS LE BLOC CATCH DU CONTRÔLEUR REGISTER ---');
+        console.error('Erreur détaillée:', error);
+        
+        if (!res.headersSent) {
+            return res.status(500).json({ message: 'Erreur serveur pendant l\'inscription.', error: error.message });
+        }
 
     }
 }

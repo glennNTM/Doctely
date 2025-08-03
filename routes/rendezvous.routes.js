@@ -8,9 +8,9 @@ rdvRouter.post('/', authenticate, medecinOnly, createRdv)
 
 rdvRouter.get('/', authenticate, adminOnly, getRdv)
 
-rdvRouter.get('/?statut=XXX', getRdvByStatut )
+rdvRouter.get('/?statut=XXX', authenticate, getRdvByStatut )
 
-rdvRouter.get('/patient/me', getRdvByPatient)
+rdvRouter.get('/patient/me', authenticate, getRdvByPatient)
 
 rdvRouter.get('/medecin/me', authenticate, medecinOnly, getRdvByMedecin)
 
