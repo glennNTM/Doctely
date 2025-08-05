@@ -33,7 +33,7 @@ export const getPatients = async (req, res) => {
 }
 
 /**
- * @route   GET /api/patients/:id
+ * @route   GET /api/patients/ :id
  * @param   {string} id - ID du patient à récupérer
  * @desc    Récupère un patient spécifique par son ID
  * @access  Admin et médecin uniquement

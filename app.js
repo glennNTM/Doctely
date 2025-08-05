@@ -15,10 +15,12 @@ import { initSocket } from "./config/socket.js"
 import cors from 'cors'
 import helmet from 'helmet'
 import xssClean from 'xss-clean'
-
+import { setupSwagger } from "./config/swagger.js"
 
 
 const app = express()
+
+setupSwagger(app)
 
 
 // Middleware pour gérer les CORS
