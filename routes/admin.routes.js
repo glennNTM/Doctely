@@ -1,10 +1,14 @@
-import { Router } from "express";
+import { Router } from "express"
+import { getAdmins, createAdmin, deleteAdmin } from "../controllers/admin.controller.js"
+import { adminOnly, authenticate } from "../middlewares/auth.middleware.js";
 
 const adminRouter = Router();
 
-adminRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les administrateurs'})})
+adminRouter.get('/', authenticate, adminOnly, getAdmins)
 
-adminRouter.post('/', (req, res) => {res.send({ title: 'Route pour créer un administrateur'})})
+adminRouter.post('/', authenticate, adminOnly, createAdmin)
+
+adminRouter.delete('/:id', authenticate, adminOnly , deleteAdmin)
 
 
 export default adminRouter

@@ -1,0 +1,271 @@
+import { PrismaClient, Specialite } from '../generated/prisma/index.js'
+
+const prisma = new PrismaClient()
+
+/**
+ * @route   GET /api/demande-medecin
+ * @desc    Recupere toutes les demandes d'inscription des medecins
+ * @access  Admin uniquement
+ */
+export const getdemandesMedecin = async (req, res) => {
+    try {
+        const demandeMedecin = await prisma.demandeMedecin.findMany()
+        return res.status(200).json({
+            success: true,
+            count: demandeMedecin.length,
+            data: demandeMedecin,
+        })
+    } catch (error) {
+        console.error('Erreur GET /api/demande-medecin :', error);
+        return res.status(500).json({
+            success: false,
+            message: "Erreur interne du serveur. Impossible de récupérer les demandes de medecin.",
+        })
+    }
+}
+
+/**
+ * @route   GET /api/demande-medecin/:id
+ * @desc    Recupere une demande d'inscription de medecin specifique avec son ID
+ * @access  Admin uniquement
+ */
+export const getdemandesMedecinById = async (req, res) => {
+    try {
+        // On recuepere l'ID et on convertit en entier
+        const demandeMedecinId = parseInt(req.params.id, 10)
+
+        // On verifie si il y a l'ID dans la requete
+        if (!demandeMedecinId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID de la demande de medecin manquant.",
+            })
+        }
+
+        // On recherche la demande dans la base de donnees
+        const demandeMedecin = await prisma.demandeMedecin.findUnique({
+            where: { id: demandeMedecinId },
+        })
+        if (!demandeMedecin) {
+            return res.status(404).json({
+                success: false,
+                message: "Demande de medecin non trouvée.",
+            })
+        }
+        // On retourne la demande recuperee
+        return res.status(200).json({
+            success: true,
+            data: demandeMedecin,
+        })
+    } catch (error) {
+        console.error('Erreur GET /api/demande-medecin/:id :', error);
+        return res.status(500).json({
+            success: false,
+            meassage: "Erreur interne du serveur. Impossible de récupérer la demande de medecin.",
+        })
+    }
+}
+
+/**
+ * @route   POST /api/demande-medecin
+ * @desc    Soummettre une demande d'inscription 
+ * @access  Public
+ */
+export const createdemandeMedecin = async (req, res) => {
+    try {
+        // Récupération des données du corps de la requête
+        const {
+            nom,
+            prenom,
+            email,
+            telephone,
+            specialite,
+            certificat,
+            adresse,
+            motivation,
+            dateDemande,
+        } = req.body;
+
+        // On verifie si tous les champs requis sont remplis
+        const champsRequis = { nom, prenom, email, specialite, certificat, dateDemande };
+        for (let [champ, valeur] of Object.entries(champsRequis)) {
+            if (!valeur) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Le champ ${champ} est requis.`
+                })
+            }
+        }
+
+        if (!Object.values(Specialite).includes(specialite)) {
+            return res.status(400).json({
+                success: false,
+                message: `Spécialité invalide. Valeurs autorisées : ${Object.values(Specialite).join(', ')}`
+            });
+        }
+        // Vérification de l'existence d'une demande avec le même email
+        const existing = await prisma.demandeMedecin.findFirst({ where: { email } });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: "Une demande avec cet email existe déjà."
+            });
+        }
+        // Création de la demande dans la base de données
+        const newDemande = await prisma.demandeMedecin.create({
+            data: {
+                nom,
+                prenom,
+                email,
+                telephone,
+                specialite,
+                certificat,
+                adresse,
+                motivation,
+                dateDemande: new Date(dateDemande)
+            }
+        });
+
+        return res.status(201).json({
+            success: true,
+            data: newDemande
+        })
+
+    } catch (error) {
+        console.error('Erreur POST /api/demande-medecin :', error);
+        return res.status(500).json({
+            success: false,
+            message: "Erreur interne du serveur. Impossible de créer la demande de médecin."
+        });
+    }
+}
+/**
+ * @route   PUT /api/demande-medecin/:id
+ * @desc    Accepter ou refuser une demande d'inscription 
+ * @access  Admin-only
+ */
+export const updatedemandeMedecin = async (req, res) => {
+    try {
+        const demandeId = parseInt(req.params.id, 10)
+        const { statut } = req.body // 'ACCEPTE' ou 'REFUSE'
+
+        if (!demandeId || !['ACCEPTE', 'REFUSE'].includes(statut)) {
+            return res.status(400).json({
+                success: false,
+                message: "ID invalide ou statut incorrect. Utilisez 'accepte' ou 'refuse'."
+            })
+        }
+
+        // Vérifie si la demande existe
+        const demandeExistante = await prisma.demandeMedecin.findUnique({
+            where: { id: demandeId }
+        })
+
+        if (!demandeExistante) {
+            return res.status(404).json({
+                success: false,
+                message: "Demande de médecin non trouvée."
+            })
+        }
+
+        // Met à jour le statut de la demande
+        const updatedDemande = await prisma.demandeMedecin.update({
+            where: { id: demandeId },
+            data: { statut }
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: `Demande mise à jour avec le statut '${statut}'.`,
+            data: updatedDemande
+        })
+    } catch (error) {
+        console.error("Erreur PUT /api/demande-medecin/:id :", error)
+        return res.status(500).json({
+            success: false,
+            message: "Erreur interne du serveur. Impossible de mettre à jour la demande."
+        })
+    }
+}
+
+/**
+ * @route   DELETE /api/demande-medecin/:id
+ * @desc    Supprime une demande de médecin par son ID
+ * @access  Admin uniquement
+ */
+export const deleteDemandeMedecin = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+
+        // Vérifie si l'ID est un nombre valide
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "ID invalide ou manquant.",
+            })
+        }
+
+        // Recherche de la demande à supprimer
+        const demande = await prisma.demandeMedecin.findUnique({
+            where: { id },
+        })
+
+        if (!demande) {
+            return res.status(404).json({
+                success: false,
+                message: "Demande de médecin introuvable.",
+            })
+        }
+
+        // Suppression de la demande
+        await prisma.demandeMedecin.delete({
+            where: { id },
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Demande de médecin supprimée avec succès.",
+        })
+    } catch (error) {
+        console.error("Erreur DELETE /api/demande-medecin/:id :", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Erreur serveur. Impossible de supprimer la demande de médecin.",
+        })
+    }
+}
+
+/**
+ * @route   GET /api/medecin-demande?statut=XXX
+ * @desc    Récupérer les demandes de médecins filtrées par statut
+ * @access  Admin-only
+ */
+export const getDemandesMedecinsParStatut = async (req, res) => {
+  try {
+    const { statut } = req.query
+
+    if (!statut) {
+      return res.status(400).json({
+        success: false,
+        message: "Le paramètre 'statut' est requis."
+      })
+    }
+
+    const demandes = await prisma.demandeMedecin.findMany({
+      where: { statut }
+    })
+
+    return res.status(200).json({
+      success: true,
+      total: demandes.length,
+      data: demandes
+    })
+  } catch (error) {
+    console.error('Erreur GET /api/medecin-demande :', error)
+    return res.status(500).json({
+      success: false,
+      message: "Erreur interne du serveur"
+    })
+  }
+}

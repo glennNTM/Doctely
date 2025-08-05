@@ -1,11 +1,20 @@
 import { Router } from "express";
+import {
+  createOrdonnance,
+  downloadOrdonnance,
+  getMedecinOrdonnance,
+  getPatientOrdonnance
+} from "../controllers/ordonnances.controller.js"
+import {medecinOnly, authenticate, patientOnly} from "../middlewares/auth.middleware.js";
 
-const ordannancesRouter = Router()
+const ordonnancesRouter = Router()
 
-ordannancesRouter.get('/', (req, res) => {res.send({ title: 'Route pour récupérer les ordonnances' })})
+ordonnancesRouter.get('/', authenticate, medecinOnly, getMedecinOrdonnance)
 
-ordannancesRouter.get('/:id', (req, res) => {res.send({ title: 'Route pour récupérer une ordonnance par son ID' })})
+ordonnancesRouter.post('/', authenticate, medecinOnly, createOrdonnance)
 
-ordannancesRouter.get('/me/:id', (req, res) => {res.send({ title: 'Route pour récupérer les ordonnances d’un patient par son ID' })})
+ordonnancesRouter.get('/me/:id', authenticate, patientOnly, getPatientOrdonnance)
 
-export default ordannancesRouter
+ordonnancesRouter.get('/:id/download', authenticate, patientOnly, downloadOrdonnance )
+
+export default ordonnancesRouter
