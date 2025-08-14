@@ -89,17 +89,14 @@ export const logIn = async (req, res) => {
  */
 export const logOut = async (req, res) => {
     try {
-        res.clearCookie('token', {
-            httpOnly: true,
-            
-        });
-
-        return res.status(200).json({ message: 'Déconnexion réussie.' });
+        // Ici, on ne peut pas "forcer" la suppression du token du localStorage depuis le backend
+        return res.status(200).json({ message: 'Déconnexion réussie. Supprimez le token côté client.' });
     } catch (error) {
         console.error('Erreur lors de la déconnexion :', error);
         return res.status(500).json({ message: 'Erreur serveur pendant la déconnexion.' });
     }
-};
+}
+
 
 
 /**
