@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 
 /**
- * @route   POST /api/demande-medecin
+ * @route   POST /api/demande-consultation
  * @desc    Soumettre une demande de consultation
  * @access  Patient uniquement
  */
@@ -23,7 +23,7 @@ export const submitConsultation = async (req, res) => {
         // On verifie si la specialiete est valide
         const specialitesEnum = Object.values(Specialite)
     if (!specialitesEnum.includes(specialite)) {
-      return res.json({ message: "Spécialité invalide." }, { status: 400 })
+        return res.status(400).json({ message: "Spécialité invalide." });
     }
     // On enregiste la demade de consultation dans la base de donnees
     const newConsultation = await prisma.demandeConsultation.create({
@@ -96,7 +96,7 @@ export const getConsultations = async (req, res) => {
  */
 export const acceptConsultation = async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user
     const demandeId = parseInt(req.params.id, 10);
 
     // Vérifie si l'utilisateur est un médecin

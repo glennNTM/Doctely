@@ -205,11 +205,14 @@ export const getMe = async (req, res) => {
             nom: true,
             prenom: true,
             email: true,
+            adresse: true,
+            genre: true,
+            groupeSanguin: true,
+            historiqueMedical: true,
             dateNaissance: true,
             telephone: true,
-            createdAt: true,
           },
-        });
+        })
         break;
 
       case 'MEDECIN':
@@ -220,10 +223,11 @@ export const getMe = async (req, res) => {
             nom: true,
             prenom: true,
             email: true,
+            adresse: true,
             specialite: true,
             telephone: true,
           },
-        });
+        })
         break;
 
       case 'ADMIN':
@@ -234,15 +238,17 @@ export const getMe = async (req, res) => {
             nom: true,
             prenom: true,
             email: true,
+            telephone: true,
+            adresse: true,
           },
-        });
+        })
         break;
 
       default:
         return res.status(400).json({
           success: false,
           message: 'Rôle utilisateur inconnu.',
-        });
+        })
     }
 
     if (!userInDb) {
@@ -263,4 +269,4 @@ export const getMe = async (req, res) => {
       message: "Erreur serveur lors de la récupération de l'utilisateur.",
     });
   }
-};
+}
