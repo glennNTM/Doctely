@@ -130,3 +130,20 @@
  *       404:
  *         description: Utilisateur non trouvé
  */
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   put:
+ *     summary: Modifier le profil de l’utilisateur connecté
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour avec succès
+ *       401:
+ *         description: Non autorisé ou token manquant
+ *       404:
+ *         description: Utilisateur non trouvé
+ */

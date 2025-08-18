@@ -48,12 +48,12 @@ export const submitConsultation = async (req, res) => {
  }
 
 /**
- * @route   GET /api/demande-consultation/me
+ * @route   GET /api/demande-consultation/medecin/me
  * @desc   Récupérer toutes les demandes de consultation correspondant à la spécialité du médecin connecté
  * @access  Medecin uniquement
  * @filter  Seules les demandes avec statut: 'EN_ATTENTE' et correspondant à la spécialité du médecin
  */
-export const getConsultations = async (req, res) => {
+export const getMedecinConsultations = async (req, res) => {
   try {
     const user = req.user
 
@@ -87,7 +87,38 @@ export const getConsultations = async (req, res) => {
     console.error("Erreur lors de la récupération des consultations :", error);
     return res.status(500).json({ error: "Erreur serveur lors de la récupération des consultations." });
   }
-};
+}
+
+/**
+ * @route   GET /api/demande-consultation/patient/me
+ * @desc   Récupérer toutes les demandes de consultation du patient  connecté
+ * @access  Patient uniquement
+ */
+export const getConsultations = async (req, res) => {
+  try {
+    const user = req.user
+    // Vérifie que l'utilisateur est bien un patient
+    if (!user || user.role !== 'PATIENT') {
+      return res.status(403).json({ error: "Accès interdit. Seuls les patients peuvent accéder à cette ressource." });
+    }
+
+    // Récupère les demandes de consultation du patient
+    const consultations = await prisma.demandeConsultation.findMany({
+      where: {
+        patientId: user.id,
+      },
+      include: {
+        medecin: true,
+      },
+    })
+
+    return res.status(200).json(consultations)
+  } catch (error) {
+    console.error("Erreur lors de la récupération des consultations :", error);
+    return res.status(500).json({ error: "Erreur serveur lors de la récupération des consultations." });
+    
+  }
+}
 
 /**
  * @route   PUT /api/demande-medecin/:id/accept
