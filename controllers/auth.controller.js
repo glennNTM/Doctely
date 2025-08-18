@@ -270,3 +270,117 @@ export const getMe = async (req, res) => {
     });
   }
 }
+
+
+/**
+ * @desc    Modifier les infos du profil de l'utilisateur connecté (Patient, Médecin ou Admin)
+ * @route   PUT /api/auth/me
+ * @access  Privé
+ */
+export const updateMe = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || !user.role || !user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Non autorisé. Jeton invalide ou informations manquantes.",
+      });
+    }
+
+    let updatedUser = null;
+
+    switch (user.role) {
+      case "PATIENT":
+        updatedUser = await prisma.patient.update({
+          where: { id: user.id },
+          data: {
+            nom: req.body.nom,
+            prenom: req.body.prenom,
+            email: req.body.email,
+            adresse: req.body.adresse,
+            genre: req.body.genre,
+            groupeSanguin: req.body.groupeSanguin,
+            historiqueMedical: req.body.historiqueMedical,
+            dateNaissance: req.body.dateNaissance,
+            telephone: req.body.telephone,
+          },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            adresse: true,
+            genre: true,
+            groupeSanguin: true,
+            historiqueMedical: true,
+            dateNaissance: true,
+            telephone: true,
+          },
+        });
+        break;
+
+      case "MEDECIN":
+        updatedUser = await prisma.medecin.update({
+          where: { id: user.id },
+          data: {
+            nom: req.body.nom,
+            prenom: req.body.prenom,
+            email: req.body.email,
+            adresse: req.body.adresse,
+            specialite: req.body.specialite,
+            telephone: req.body.telephone,
+          },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            adresse: true,
+            specialite: true,
+            telephone: true,
+          },
+        });
+        break;
+
+      case "ADMIN":
+        updatedUser = await prisma.admin.update({
+          where: { id: user.id },
+          data: {
+            nom: req.body.nom,
+            prenom: req.body.prenom,
+            email: req.body.email,
+            telephone: req.body.telephone,
+            adresse: req.body.adresse,
+          },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true,
+            adresse: true,
+          },
+        });
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: "Rôle utilisateur inconnu.",
+        });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profil mis à jour avec succès",
+      data: { role: user.role, ...updatedUser },
+    });
+  } catch (error) {
+    console.error("Erreur dans PUT /me :", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la mise à jour du profil.",
+    });
+  }
+}
