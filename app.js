@@ -34,7 +34,7 @@ app.use(helmet())
 
 // Protection contre les attaques XSS (nettoie les entrées utilisateur)
 app.use(xssClean())
-const server = http.createServer(app); // Création du serveur HTTP
+const server = http.createServer(app) // Création du serveur HTTP
 initSocket(server); // Initialisation de Socket.IO
 
 // Middleware pour gerer le format des donnees

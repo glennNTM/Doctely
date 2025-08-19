@@ -372,3 +372,48 @@ export const joinRdvVideo = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erreur serveur lors de la connexion à la salle vidéo" });
   }
 }
+
+/**
+ * @route   GET /api/rendez-vous/:id
+ * @desc    Récupérer un rendez-vous par son ID
+ * @access  Privé - Médecin et Patient
+ */
+export const getRdvById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    // Vérifier que l'ID est bien un entier
+    const rdvId = parseInt(id, 10);
+    if (isNaN(rdvId)) {
+      return res.status(400).json({ error: "ID de rendez-vous invalide." });
+    }
+
+    // Récupérer le rendez-vous
+    const rdv = await prisma.rendezvous.findUnique({
+      where: { id: rdvId },
+      include: {
+        patient: true,
+        medecin: true,
+      },
+    });
+
+    if (!rdv) {
+      return res.status(404).json({ error: "Rendez-vous non trouvé." });
+    }
+
+    // Vérifier les permissions selon le rôle de l'utilisateur
+    if (user.role === 'MEDECIN' && rdv.medecinId !== user.id) {
+      return res.status(403).json({ error: "Accès interdit à ce rendez-vous." });
+    }
+
+    if (user.role === 'PATIENT' && rdv.patientId !== user.id) {
+      return res.status(403).json({ error: "Accès interdit à ce rendez-vous." });
+    }
+
+    res.json(rdv);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur lors de la récupération du rendez-vous." });
+  }
+}

@@ -63,10 +63,10 @@ export const createOrdonnance = async (req, res) => {
       ordonnance,
     });
   } catch (error) {
-    console.error("Erreur création ordonnance :", error);
-    res.status(500).json({ error: "Erreur serveur." });
+    console.error("Erreur création ordonnance :", error)
+    res.status(500).json({ error: "Erreur serveur." })
   }
-};
+}
 
 /**
  * @route   GET /api/ordonnances/me
@@ -93,7 +93,7 @@ export const getPatientOrdonnance = async (req, res) => {
     console.error("Erreur récupération ordonnances patient :", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
-};
+}
 
 /**
  * @route   GET /api/ordonnances/me/medecin
@@ -120,7 +120,7 @@ export const getMedecinOrdonnance = async (req, res) => {
     console.error("Erreur récupération ordonnances médecin :", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
-};
+}
 
 /**
  * @route   GET /api/ordonnances/:id/download

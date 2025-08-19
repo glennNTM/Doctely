@@ -9,12 +9,12 @@ import {medecinOnly, authenticate, patientOnly} from "../middlewares/auth.middle
 
 const ordonnancesRouter = Router()
 
-ordonnancesRouter.get('/', authenticate, medecinOnly, getMedecinOrdonnance)
+ordonnancesRouter.get('/me/medecin', authenticate, medecinOnly, getMedecinOrdonnance)
 
 ordonnancesRouter.post('/', authenticate, medecinOnly, createOrdonnance)
 
-ordonnancesRouter.get('/me/:id', authenticate, patientOnly, getPatientOrdonnance)
+ordonnancesRouter.get('/me', authenticate, patientOnly, getPatientOrdonnance)
 
-ordonnancesRouter.get('/:id/download', authenticate, patientOnly, downloadOrdonnance )
+ordonnancesRouter.get('/:id/download', authenticate,  patientOnly, downloadOrdonnance )
 
 export default ordonnancesRouter
