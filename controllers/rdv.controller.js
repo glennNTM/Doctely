@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma/index.js'
+import axios from 'axios'
 
 const prisma = new PrismaClient()
 
@@ -260,18 +261,114 @@ export const cancelRdv = async (req, res) => {
 }
 
 
-
 /**
  * @route   POST /api/rendez-vous/:id/video
- * @desc    Creer une salle video pour la teleconsultation
+ * @desc    Créer une salle vidéo pour la téléconsultation
  * @access  Medecin-only
  */
-export const createRdvVideo = async (req, res) => { }
+export const createRdvVideo = async (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
 
+    if (!user || user.role !== "MEDECIN") {
+      return res.status(403).json({ success: false, message: "Accès interdit" });
+    }
+
+    // Vérifier que le rendez-vous existe
+    const rdv = await prisma.rendezvous.findUnique({
+      where: { id },
+      include: { patient: true, medecin: true },
+    });
+
+    if (!rdv) {
+      return res.status(404).json({ success: false, message: "Rendez-vous introuvable" });
+    }
+
+    // Créer une salle Daily.co
+    const response = await axios.post(
+      `${process.env.DAILY_API_URL}/rooms`,
+      {
+        name: `rdv-${id}-${Date.now()}`, // nom unique
+        properties: {
+          enable_chat: true,
+          enable_screenshare: true,
+          exp: Math.floor(Date.now() / 1000) + 60 * 60, // expire après 1h
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Sauvegarde de l’URL dans la DB
+    const updatedRdv = await prisma.rendezVous.update({
+      where: { id },
+      data: { videoUrl: response.data.url },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Salle vidéo créée avec succès",
+      url: response.data.url,
+      rdv: updatedRdv,
+    });
+  } catch (error) {
+    console.error("Erreur Daily.co :", error.response?.data || error.message);
+    return res.status(500).json({ success: false, message: "Erreur serveur lors de la création de la salle vidéo" });
+  }
+};
 
 /**
  * @route   GET /api/rendez-vous/:id/video
- * @desc    Rejoindre une salle video pour la teleconsultation
- * @access  Patient & Medecin-only
+ * @desc    Rejoindre une salle vidéo pour la téléconsultation
+ * @access  Patient & Médecin-only
  */
-export const joinRdvVideo = async (req, res) => { }
+export const joinRdvVideo = async (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    if (!user || !["PATIENT", "MEDECIN"].includes(user.role)) {
+      return res.status(403).json({ success: false, message: "Accès interdit" });
+    }
+
+    // Vérifier que le RDV existe et qu'il a une salle
+    const rdv = await prisma.rendezvous.findUnique({
+      where: { id },
+    });
+
+    if (!rdv || !rdv.videoUrl) {
+      return res.status(404).json({ success: false, message: "Salle vidéo introuvable pour ce rendez-vous" });
+    }
+
+    // Générer un token d’accès pour la salle Daily.co
+    const response = await axios.post(
+      `${process.env.DAILY_API_URL}/meeting-tokens`,
+      {
+        properties: {
+          room_name: rdv.videoUrl.split("/").pop(), // récupère le nom de la salle
+          user_name: `${user.prenom} ${user.nom}`,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      url: rdv.videoUrl,
+      token: response.data.token,
+    });
+  } catch (error) {
+    console.error("Erreur join salle vidéo :", error.response?.data || error.message);
+    return res.status(500).json({ success: false, message: "Erreur serveur lors de la connexion à la salle vidéo" });
+  }
+}

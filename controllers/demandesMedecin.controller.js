@@ -1,5 +1,6 @@
 import { PrismaClient, Specialite } from '../generated/prisma/index.js'
 
+
 const prisma = new PrismaClient()
 
 /**
@@ -83,11 +84,11 @@ export const createdemandeMedecin = async (req, res) => {
             certificat,
             adresse,
             motivation,
-            dateDemande,
+            dateDemande = new Date().toISOString() // Par défaut, la date actuelle
         } = req.body;
 
         // On verifie si tous les champs requis sont remplis
-        const champsRequis = { nom, prenom, email, specialite, certificat, dateDemande };
+        const champsRequis = { nom, prenom, email, specialite, certificat }
         for (let [champ, valeur] of Object.entries(champsRequis)) {
             if (!valeur) {
                 return res.status(400).json({
@@ -101,7 +102,7 @@ export const createdemandeMedecin = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: `Spécialité invalide. Valeurs autorisées : ${Object.values(Specialite).join(', ')}`
-            });
+            })
         }
         // Vérification de l'existence d'une demande avec le même email
         const existing = await prisma.demandeMedecin.findFirst({ where: { email } });
@@ -109,7 +110,7 @@ export const createdemandeMedecin = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Une demande avec cet email existe déjà."
-            });
+            })
         }
         // Création de la demande dans la base de données
         const newDemande = await prisma.demandeMedecin.create({
@@ -124,7 +125,7 @@ export const createdemandeMedecin = async (req, res) => {
                 motivation,
                 dateDemande: new Date(dateDemande)
             }
-        });
+        })
 
         return res.status(201).json({
             success: true,
@@ -136,7 +137,7 @@ export const createdemandeMedecin = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Erreur interne du serveur. Impossible de créer la demande de médecin."
-        });
+        })
     }
 }
 /**

@@ -16,9 +16,9 @@ rdvRouter.get('/medecin/me', authenticate, medecinOnly, getRdvByMedecin)
 
 rdvRouter.put('/:id/cancel', authenticate, medecinOnly, cancelRdv)
 
-rdvRouter.post('/:id/video', createRdvVideo)
+rdvRouter.post('/:id/video', authenticate, medecinOnly, createRdvVideo)
 
-rdvRouter.get('/:id/video', joinRdvVideo)
+rdvRouter.get('/:id/video', authenticate, joinRdvVideo)
 
 
 
