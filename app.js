@@ -25,9 +25,10 @@ setupSwagger(app)
 
 // Middleware pour gérer les CORS
 app.use(cors({
-  origin: 'http://localhost:8080', // Port de votre serveur de développement Vite
-  credentials: true // Autorise l'envoi des cookies et des en-têtes d'autorisation
+  origin: ['http://localhost:8080', 'https://doctely.netlify.app'],
+  credentials: true
 }))
+
 
 // Middleware de sécurité Helmet (protection XSS de base et autres en-têtes de sécurité)
 app.use(helmet())
