@@ -157,7 +157,7 @@ model Rendezvous {
 
 model Ordonnance {
   id           Int        @id @default(autoincrement())
-  contenu      String? // Texte brut ou HTML de l’ordonnance
+  contenu      String? // Texte brut
   format       String? // Type de contenu (ex: "text", "html", "pdf")
   fichierUrl   String? // URL de téléchargement si fichier PDF généré
   codeQr       String? // Code unique (ou URL) encodé dans un QR pour vérification en pharmacie

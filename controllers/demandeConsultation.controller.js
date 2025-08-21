@@ -8,44 +8,45 @@ const prisma = new PrismaClient()
  * @desc    Soumettre une demande de consultation
  * @access  Patient uniquement
  */
-export const submitConsultation = async (req, res) => { 
-    try {
-        // Récupération des données du corps de la requête
-        const { specialite, motif } = req.body
+export const submitConsultation = async (req, res) => {
+  try {
+    // Récupération des données du corps de la requête
+    const { specialite, motif } = req.body
 
-        // On verifie si tous les champs requis sont remplis
-        if (!specialite || !motif) {
-            return res.status(400).json({
-                success: false,
-                message: "Les champs spécialité et motif sont obligatoires."
-            })
-        }
-        // On verifie si la specialiete est valide
-        const specialitesEnum = Object.values(Specialite)
+    // On verifie si tous les champs requis sont remplis
+    if (!specialite || !motif) {
+      return res.status(400).json({
+        success: false,
+        message: "Les champs spécialité et motif sont obligatoires."
+      })
+    }
+    // On verifie si la specialiete est valide
+    const specialitesEnum = Object.values(Specialite)
     if (!specialitesEnum.includes(specialite)) {
-        return res.status(400).json({ message: "Spécialité invalide." });
+      return res.status(400).json({ message: "Spécialité invalide." });
     }
     // On enregiste la demade de consultation dans la base de donnees
     const newConsultation = await prisma.demandeConsultation.create({
-        data: {
-            patientId: req.user.id,
-            specialite,
-            motif,
-            statut: 'EN_ATTENTE'
-        }
+      data: {
+        patientId: req.user.id,
+        specialite,
+        motif,
+        statut: 'EN_ATTENTE'
+      }
     })
     return res.status(201).json({
-        success: true,
-        data: newConsultation
+      success: true,
+      data: newConsultation
     })
-        
-    } catch (error) {
-        console.error("Erreur POST /api/demande-consultation :", error)
-        return res.status(500).json({
-            success: false,
-            message: "Erreur interne du serveur. Impossible de soumettre la demande de consultation." })
-    }
- }
+
+  } catch (error) {
+    console.error("Erreur POST /api/demande-consultation :", error)
+    return res.status(500).json({
+      success: false,
+      message: "Erreur interne du serveur. Impossible de soumettre la demande de consultation."
+    })
+  }
+}
 
 /**
  * @route   GET /api/demande-consultation/medecin/me
@@ -55,39 +56,48 @@ export const submitConsultation = async (req, res) => {
  */
 export const getMedecinConsultations = async (req, res) => {
   try {
-    const user = req.user
+    const user = req.user;
 
-    // Vérifie que l'utilisateur est bien un médecin
     if (!user || user.role !== 'MEDECIN') {
-      return res.status(403).json({ error: "Accès interdit. Seuls les médecins peuvent accéder à cette ressource." });
+      return res.status(403).json({
+        success: false,
+        message: "Accès interdit. Seuls les médecins peuvent accéder à cette ressource."
+      });
     }
 
-    // Récupère les infos du médecin (spécialité)
     const medecin = await prisma.medecin.findUnique({
       where: { id: user.id },
     });
 
     if (!medecin) {
-      return res.status(404).json({ error: "Médecin non trouvé." });
+      return res.status(404).json({
+        success: false,
+        message: "Médecin non trouvé."
+      });
     }
 
-    // Récupère les demandes de consultation avec statut EN_ATTENTE et même spécialité que le médecin
     const consultations = await prisma.demandeConsultation.findMany({
       where: {
         statut: 'EN_ATTENTE',
         specialite: medecin.specialite,
       },
-      include: {
-        patient: true,
-      },
-    })
+      include: { patient: true },
+    });
 
-    return res.status(200).json(consultations);
+    return res.status(200).json({
+      success: true,
+      count: consultations.length,
+      data: consultations,
+    });
   } catch (error) {
     console.error("Erreur lors de la récupération des consultations :", error);
-    return res.status(500).json({ error: "Erreur serveur lors de la récupération des consultations." });
+    return res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération des consultations."
+    });
   }
-}
+};
+
 
 /**
  * @route   GET /api/demande-consultation/patient/me
@@ -116,7 +126,7 @@ export const getConsultations = async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de la récupération des consultations :", error);
     return res.status(500).json({ error: "Erreur serveur lors de la récupération des consultations." });
-    
+
   }
 }
 
@@ -162,7 +172,7 @@ export const acceptConsultation = async (req, res) => {
       where: { id: demandeId },
       data: {
         statut: 'ACCEPTE',
-        medecinId: medecin.id, 
+        medecinId: medecin.id,
       },
     })
 
@@ -209,7 +219,7 @@ export const rejectConsultation = async (req, res) => {
       where: { id: demandeId },
       data: {
         statut: 'REFUSE',
-        medecinId: medecin.id, 
+        medecinId: medecin.id,
       },
     })
 
