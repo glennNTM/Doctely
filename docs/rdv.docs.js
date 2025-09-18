@@ -10,6 +10,7 @@
  * /api/rendez-vous:
  *   post:
  *     summary: Créer un rendez-vous
+ *     description: Créer un nouveau rendez-vous. Les notifications automatiques seront envoyées 5 minutes avant l'heure du RDV.
  *     tags: [RendezVous]
  *     security:
  *       - bearerAuth: []
@@ -24,24 +25,35 @@
  *             properties:
  *               patientId:
  *                 type: integer
+ *                 example: 1
  *               date:
  *                 type: string
- *                 format: date-time
+ *                 format: date
+ *                 example: "2025-11-25"
  *               heure:
  *                 type: string
+ *                 pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+ *                 example: "14:30"
  *               motif:
  *                 type: string
+ *                 example: "Consultation de suivi"
  *               type:
  *                 type: string
+ *                 enum: [EN_PERSONNE, TELECONSULTATION]
+ *                 example: "EN_PERSONNE"
  *               demandeId:
  *                 type: integer
+ *                 nullable: true
+ *                 example: null
  *     responses:
  *       201:
- *         description: Rendez-vous créé avec succès
+ *         description: Rendez-vous créé avec succès, notifications programmées
  *       400:
  *         description: Données manquantes ou invalides
  *       403:
- *         description: Accès interdit
+ *         description: Accès interdit, réservé aux médecins
+ *       404:
+ *         description: Médecin non trouvé
  *       500:
  *         description: Erreur serveur
  */

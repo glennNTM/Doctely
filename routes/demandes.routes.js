@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { submitConsultation, getConsultations, acceptConsultation, rejectConsultation } from "../controllers/demandeConsultation.controller.js"
+import { submitConsultation, getMedecinConsultations, acceptConsultation, rejectConsultation, getConsultations } from "../controllers/demandeConsultation.controller.js"
 import { authenticate, medecinOnly, patientOnly } from "../middlewares/auth.middleware.js"
 
 
@@ -7,7 +7,9 @@ const demandeConsultationRouter = Router()
 
 demandeConsultationRouter.post('/', authenticate , patientOnly, submitConsultation)
 
-demandeConsultationRouter.get('/me', authenticate, medecinOnly, getConsultations)
+demandeConsultationRouter.get('/medecin/me', authenticate, medecinOnly, getMedecinConsultations)
+
+demandeConsultationRouter.get('/patient/me', authenticate, patientOnly, getConsultations)
 
 demandeConsultationRouter.put('/:id/accept', authenticate, medecinOnly, acceptConsultation )
 

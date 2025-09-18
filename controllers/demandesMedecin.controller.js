@@ -1,4 +1,5 @@
-import { PrismaClient, Specialite } from '../generated/prisma/index.js'
+import { PrismaClient } from '../generated/prisma/index.js'
+
 
 const prisma = new PrismaClient()
 
@@ -68,77 +69,85 @@ export const getdemandesMedecinById = async (req, res) => {
 
 /**
  * @route   POST /api/demande-medecin
- * @desc    Soummettre une demande d'inscription 
+ * @desc    Créer une nouvelle demande d'inscription de médecin
  * @access  Public
  */
 export const createdemandeMedecin = async (req, res) => {
-    try {
-        // Récupération des données du corps de la requête
-        const {
-            nom,
-            prenom,
-            email,
-            telephone,
-            specialite,
-            certificat,
-            adresse,
-            motivation,
-            dateDemande,
-        } = req.body;
+  try {
+    const {
+      nom,
+      prenom,
+      email,
+      telephone,
+      adresse,
+      specialite,
+      certificat, // Base64 envoyé par le front
+      motivation,
+    } = req.body;
 
-        // On verifie si tous les champs requis sont remplis
-        const champsRequis = { nom, prenom, email, specialite, certificat, dateDemande };
-        for (let [champ, valeur] of Object.entries(champsRequis)) {
-            if (!valeur) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Le champ ${champ} est requis.`
-                })
-            }
-        }
-
-        if (!Object.values(Specialite).includes(specialite)) {
-            return res.status(400).json({
-                success: false,
-                message: `Spécialité invalide. Valeurs autorisées : ${Object.values(Specialite).join(', ')}`
-            });
-        }
-        // Vérification de l'existence d'une demande avec le même email
-        const existing = await prisma.demandeMedecin.findFirst({ where: { email } });
-        if (existing) {
-            return res.status(400).json({
-                success: false,
-                message: "Une demande avec cet email existe déjà."
-            });
-        }
-        // Création de la demande dans la base de données
-        const newDemande = await prisma.demandeMedecin.create({
-            data: {
-                nom,
-                prenom,
-                email,
-                telephone,
-                specialite,
-                certificat,
-                adresse,
-                motivation,
-                dateDemande: new Date(dateDemande)
-            }
-        });
-
-        return res.status(201).json({
-            success: true,
-            data: newDemande
-        })
-
-    } catch (error) {
-        console.error('Erreur POST /api/demande-medecin :', error);
-        return res.status(500).json({
-            success: false,
-            message: "Erreur interne du serveur. Impossible de créer la demande de médecin."
-        });
+    // Vérifications des champs obligatoires
+    if (
+      !nom ||
+      !prenom ||
+      !email ||
+      !telephone ||
+      !adresse ||
+      !specialite ||
+      !certificat ||
+      !motivation
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Tous les champs sont obligatoires",
+      });
     }
+
+    if (motivation.length < 100) {
+      return res.status(400).json({
+        success: false,
+        message: "La lettre de motivation doit contenir au moins 100 caractères",
+      });
+    }
+
+    // Vérification que le fichier est bien un PDF encodé en base64
+    if (!certificat.startsWith("data:application/pdf;base64,")) {
+      return res.status(400).json({
+        success: false,
+        message: "Le certificat doit être un fichier PDF encodé en base64",
+      });
+    }
+
+    // Enregistrement dans la base (PostgreSQL, Prisma)
+    const nouvelleDemande = await prisma.demandeMedecin.create({
+      data: {
+        nom,
+        prenom,
+        email,
+        telephone,
+        adresse,
+        specialite,
+        certificat, // Base64 stocké en base (champ TEXT ou LONGTEXT recommandé)
+        motivation,
+        statut: "EN_ATTENTE", // valeur par défaut
+      },
+    })
+
+    return res.status(201).json({
+      success: true,
+      message: "Votre demande a été enregistrée avec succès.",
+      data: nouvelleDemande,
+    });
+  } catch (error) {
+    console.error("Erreur POST /api/demande-medecin :", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur interne du serveur. Impossible de créer la demande.",
+      error: error.message,
+    })
+  }
 }
+
+
 /**
  * @route   PUT /api/demande-medecin/:id
  * @desc    Accepter ou refuser une demande d'inscription 
