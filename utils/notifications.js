@@ -1,8 +1,8 @@
 // utils/notifications.js
-import { PrismaClient } from "../generated/prisma/index.js"
-import { getIO } from "../config/socket.js"
+import { PrismaClient } from '../generated/prisma/index.js';
+import { getIO } from '../config/socket.js';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 /**
  * Fonction principale pour créer et envoyer une notification
@@ -20,25 +20,25 @@ export const createAndSendNotification = async ({ destinataireId, typeDestinatai
         contenu,
         lue: false,
       },
-    })
+    });
 
     // Step 2: Envoyer en temps réel via Socket.IO
-    const io = getIO()
-    io.to(destinataireId.toString()).emit("nouvelle_notification", {
+    const io = getIO();
+    io.to(destinataireId.toString()).emit('nouvelle_notification', {
       id: notification.id,
       type: notification.type,
       contenu: notification.contenu,
       date: notification.date,
       lue: notification.lue,
-    })
+    });
 
-    console.log(`Notification envoyée à l'utilisateur ${destinataireId}`)
-    return notification
+    console.log(`Notification envoyée à l'utilisateur ${destinataireId}`);
+    return notification;
   } catch (error) {
-    console.error("Erreur notification:", error)
-    throw error
+    console.error('Erreur notification:', error);
+    throw error;
   }
-}
+};
 
 /**
  * SCENARIO 1: Notifier tous les médecins d'une spécialité
@@ -49,24 +49,24 @@ export const notifyMedecinsNewDemande = async (specialite, patientName, demandeI
     // Step 1: Récupérer tous les médecins de cette spécialité
     const medecins = await prisma.medecin.findMany({
       where: { specialite },
-    })
+    });
 
     // Step 2: Créer et envoyer une notification à chaque médecin
     const notifications = medecins.map(medecin =>
       createAndSendNotification({
         destinataireId: medecin.id,
-        typeDestinataire: "MEDECIN",
-        type: "NOUVELLE_DEMANDE",
+        typeDestinataire: 'MEDECIN',
+        type: 'NOUVELLE_DEMANDE',
         contenu: `Nouvelle demande de consultation de ${patientName} pour ${specialite.toLowerCase()}.`,
       })
-    )
+    );
 
-    await Promise.all(notifications)
-    console.log(`${medecins.length} médecins ${specialite} notifiés`)
+    await Promise.all(notifications);
+    console.log(`${medecins.length} médecins ${specialite} notifiés`);
   } catch (error) {
-    console.error("Erreur notification médecins:", error)
+    console.error('Erreur notification médecins:', error);
   }
-}
+};
 
 /**
  * SCENARIO 2: Notifier le patient que sa demande est acceptée
@@ -76,14 +76,14 @@ export const notifyPatientDemandeAccepted = async (patientId, medecinName, speci
   try {
     await createAndSendNotification({
       destinataireId: patientId,
-      typeDestinataire: "PATIENT",
-      type: "DEMANDE_ACCEPTEE",
+      typeDestinataire: 'PATIENT',
+      type: 'DEMANDE_ACCEPTEE',
       contenu: `Bonne nouvelle ! Le Dr. ${medecinName} a accepté votre demande de consultation pour ${specialite.toLowerCase()}.`,
-    })
+    });
   } catch (error) {
-    console.error("Erreur notification acceptation:", error)
+    console.error('Erreur notification acceptation:', error);
   }
-}
+};
 
 /**
  * SCENARIO 3: Notifier patient et médecin que le RDV commence
@@ -94,38 +94,38 @@ export const notifyRdvTime = async (rdv, patient, medecin) => {
     // Step 1: Notification au patient
     await createAndSendNotification({
       destinataireId: rdv.patientId,
-      typeDestinataire: "PATIENT",
-      type: "RDV_IMMINENT",
+      typeDestinataire: 'PATIENT',
+      type: 'RDV_IMMINENT',
       contenu: `Votre rendez-vous avec le Dr. ${medecin.prenom} ${medecin.nom} commence maintenant !`,
-    })
+    });
 
     // Step 2: Notification au médecin
     await createAndSendNotification({
       destinataireId: rdv.medecinId,
-      typeDestinataire: "MEDECIN",
-      type: "RDV_IMMINENT",
+      typeDestinataire: 'MEDECIN',
+      type: 'RDV_IMMINENT',
       contenu: `Votre rendez-vous avec ${patient.prenom} ${patient.nom} commence maintenant !`,
-    })
+    });
 
     // Step 3: Événement spécial pour ouvrir la room automatiquement
-    const io = getIO()
+    const io = getIO();
 
     // Signal spécial au patient
-    io.to(rdv.patientId.toString()).emit("rdv_ready", {
+    io.to(rdv.patientId.toString()).emit('rdv_ready', {
       rdvId: rdv.id,
-      message: "Rejoignez votre consultation",
-      action: "join_room",
-    })
+      message: 'Rejoignez votre consultation',
+      action: 'join_room',
+    });
 
     // Signal spécial au médecin
-    io.to(rdv.medecinId.toString()).emit("rdv_ready", {
+    io.to(rdv.medecinId.toString()).emit('rdv_ready', {
       rdvId: rdv.id,
-      message: "Rejoignez votre consultation",
-      action: "join_room",
-    })
+      message: 'Rejoignez votre consultation',
+      action: 'join_room',
+    });
 
-    console.log(`Notifications RDV envoyées pour le rendez-vous #${rdv.id}`)
+    console.log(`Notifications RDV envoyées pour le rendez-vous #${rdv.id}`);
   } catch (error) {
-    console.error("Erreur notification RDV:", error)
+    console.error('Erreur notification RDV:', error);
   }
-}
+};

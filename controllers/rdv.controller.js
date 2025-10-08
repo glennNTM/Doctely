@@ -1,8 +1,8 @@
-import { PrismaClient } from "../generated/prisma/index.js"
-import { TypeRdv } from "../generated/prisma/index.js"
-import axios from "axios"
+import { PrismaClient } from '../generated/prisma/index.js';
+import { TypeRdv } from '../generated/prisma/index.js';
+import axios from 'axios';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 /**
  * @route   POST /api/rendez-vous
@@ -12,15 +12,15 @@ const prisma = new PrismaClient()
 export const createRdv = async (req, res) => {
   try {
     // 1️⃣ Récupérer l'ID du médecin connecté (injecté via le middleware d'authentification)
-    const medecinId = req.user.id
+    const medecinId = req.user.id;
 
     // 2️⃣ Vérifier si ce médecin existe et récupérer ses infos
     const medecin = await prisma.medecin.findUnique({
       where: { id: medecinId },
-    })
+    });
 
     if (!medecin) {
-      return res.status(404).json({ message: "Médecin non trouvé." })
+      return res.status(404).json({ message: 'Médecin non trouvé.' });
     }
 
     // Récupérer les données envoyées dans le corps de la requête
@@ -31,13 +31,13 @@ export const createRdv = async (req, res) => {
       motif,
       type = TypeRdv,
       demandeId,
-    } = req.body
+    } = req.body;
 
     // 4️⃣ Validation des champs obligatoires
     if (!patientId || !date || !heure || !motif) {
       return res.status(400).json({
-        message: "Veuillez fournir patientId, date, heure et motif.",
-      })
+        message: 'Veuillez fournir patientId, date, heure et motif.',
+      });
     }
 
     // 5️⃣ Créer le rendez-vous avec la spécialité automatiquement ajoutée
@@ -52,18 +52,18 @@ export const createRdv = async (req, res) => {
         type,
         demandeId: demandeId || null, // Peut être null si pas de lien avec une demande
       },
-    })
+    });
 
     // 6️⃣ Retourner le rendez-vous créé
     res.status(201).json({
-      message: "Rendez-vous créé avec succès.",
+      message: 'Rendez-vous créé avec succès.',
       rendezVous,
-    })
+    });
   } catch (error) {
-    console.error("Erreur création rendez-vous:", error)
-    res.status(500).json({ message: "Erreur serveur lors de la création du rendez-vous." })
+    console.error('Erreur création rendez-vous:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la création du rendez-vous.' });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous
@@ -73,22 +73,22 @@ export const createRdv = async (req, res) => {
 export const getRdv = async (req, res) => {
   try {
     // Requete a la base de donnees pour recuperer tous les rdvs
-    const rdvs = await prisma.rendezvous.findMany()
+    const rdvs = await prisma.rendezvous.findMany();
 
     // On retourne les rendez-vous
     return res.status(200).json({
       success: true,
       count: rdvs.length,
       data: rdvs,
-    })
+    });
   } catch (error) {
-    console.error("Erreur GET /api/rendez-vous :", error)
+    console.error('Erreur GET /api/rendez-vous :', error);
     res.status(500).json({
       success: false,
-      message: "Erreur interne du serveur. Impossible de récupérer les rendez-vous.",
-    })
+      message: 'Erreur interne du serveur. Impossible de récupérer les rendez-vous.',
+    });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous?statut=XXX
@@ -97,17 +97,17 @@ export const getRdv = async (req, res) => {
  */
 export const getRdvByStatut = async (req, res) => {
   try {
-    const { statut } = req.query
-    const user = req.user
+    const { statut } = req.query;
+    const user = req.user;
 
-    if (!statut || !["PLANIFIE", "REALISE", "ANNULE"].includes(statut)) {
-      return res.status(400).json({ error: "Statut invalide ou manquant." })
+    if (!statut || !['PLANIFIE', 'REALISE', 'ANNULE'].includes(statut)) {
+      return res.status(400).json({ error: 'Statut invalide ou manquant.' });
     }
 
-    let rendezvous = []
+    let rendezvous = [];
 
     // Vérifie le rôle pour filtrer les RDVs selon l'utilisateur
-    if (user.role === "MEDECIN") {
+    if (user.role === 'MEDECIN') {
       rendezvous = await prisma.rendezvous.findMany({
         where: {
           medecinId: user.id,
@@ -117,8 +117,8 @@ export const getRdvByStatut = async (req, res) => {
           patient: true,
           demande: true,
         },
-      })
-    } else if (user.role === "PATIENT") {
+      });
+    } else if (user.role === 'PATIENT') {
       rendezvous = await prisma.rendezvous.findMany({
         where: {
           patientId: user.id,
@@ -128,17 +128,17 @@ export const getRdvByStatut = async (req, res) => {
           medecin: true,
           demande: true,
         },
-      })
+      });
     } else {
-      return res.status(403).json({ error: "Accès interdit." })
+      return res.status(403).json({ error: 'Accès interdit.' });
     }
 
-    res.json(rendezvous)
+    res.json(rendezvous);
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." })
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des rendez-vous.' });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous/patient/me
@@ -147,10 +147,10 @@ export const getRdvByStatut = async (req, res) => {
  */
 export const getRdvByPatient = async (req, res) => {
   try {
-    const user = req.user
+    const user = req.user;
 
-    if (user.role !== "PATIENT") {
-      return res.status(403).json({ error: "Accès réservé aux patients." })
+    if (user.role !== 'PATIENT') {
+      return res.status(403).json({ error: 'Accès réservé aux patients.' });
     }
 
     const rendezvous = await prisma.rendezvous.findMany({
@@ -162,18 +162,18 @@ export const getRdvByPatient = async (req, res) => {
         demande: true,
       },
       orderBy: {
-        date: "desc",
+        date: 'desc',
       },
-    })
+    });
 
-    res.json(rendezvous)
+    res.json(rendezvous);
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(500).json({
-      error: "Erreur lors de la récupération des rendez-vous du patient.",
-    })
+      error: 'Erreur lors de la récupération des rendez-vous du patient.',
+    });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous/medecin/me
@@ -182,10 +182,10 @@ export const getRdvByPatient = async (req, res) => {
  */
 export const getRdvByMedecin = async (req, res) => {
   try {
-    const user = req.user
+    const user = req.user;
 
-    if (user.role !== "MEDECIN") {
-      return res.status(403).json({ error: "Accès réservé aux médecins." })
+    if (user.role !== 'MEDECIN') {
+      return res.status(403).json({ error: 'Accès réservé aux médecins.' });
     }
 
     const rendezvous = await prisma.rendezvous.findMany({
@@ -197,18 +197,18 @@ export const getRdvByMedecin = async (req, res) => {
         demande: true,
       },
       orderBy: {
-        date: "desc",
+        date: 'desc',
       },
-    })
+    });
 
-    res.json(rendezvous)
+    res.json(rendezvous);
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(500).json({
-      error: "Erreur lors de la récupération des rendez-vous du médecin.",
-    })
+      error: 'Erreur lors de la récupération des rendez-vous du médecin.',
+    });
   }
-}
+};
 
 /**
  * @route   PUT /api/rendez-vous/:id/cancel
@@ -216,47 +216,47 @@ export const getRdvByMedecin = async (req, res) => {
  * @access  Médecin authentifié
  */
 export const cancelRdv = async (req, res) => {
-  const { id } = req.params
-  const medecinConnecteId = req.user?.id // Assure-toi que le middleware d'auth ajoute `req.user`
+  const { id } = req.params;
+  const medecinConnecteId = req.user?.id; // Assure-toi que le middleware d'auth ajoute `req.user`
 
   try {
     // Vérifier que l'ID est bien un entier
-    const rdvId = parseInt(id, 10)
+    const rdvId = parseInt(id, 10);
     if (isNaN(rdvId)) {
-      return res.status(400).json({ error: "ID de rendez-vous invalide." })
+      return res.status(400).json({ error: 'ID de rendez-vous invalide.' });
     }
 
     // Rechercher le rendez-vous
     const rdv = await prisma.rendezvous.findUnique({
       where: { id: rdvId },
-    })
+    });
 
     if (!rdv) {
-      return res.status(404).json({ error: "Rendez-vous non trouvé." })
+      return res.status(404).json({ error: 'Rendez-vous non trouvé.' });
     }
 
     // Vérifier que le médecin connecté est bien celui du rendez-vous
     if (rdv.medecinId !== medecinConnecteId) {
-      return res.status(403).json({ error: "Accès refusé à ce rendez-vous." })
+      return res.status(403).json({ error: 'Accès refusé à ce rendez-vous.' });
     }
 
     // Mettre à jour le statut du rendez-vous à ANNULE
     const rdvAnnule = await prisma.rendezvous.update({
       where: { id: rdvId },
-      data: { statut: "ANNULE" },
-    })
+      data: { statut: 'ANNULE' },
+    });
 
     return res.status(200).json({
-      message: "Rendez-vous annulé avec succès.",
+      message: 'Rendez-vous annulé avec succès.',
       rendezvous: rdvAnnule,
-    })
+    });
   } catch (error) {
-    console.error("Erreur lors de l’annulation du rendez-vous :", error)
+    console.error('Erreur lors de l’annulation du rendez-vous :', error);
     return res.status(500).json({
-      error: "Une erreur est survenue lors de l’annulation du rendez-vous.",
-    })
+      error: 'Une erreur est survenue lors de l’annulation du rendez-vous.',
+    });
   }
-}
+};
 
 /**
  * @route   POST /api/rendez-vous/:id/video
@@ -265,21 +265,21 @@ export const cancelRdv = async (req, res) => {
  */
 export const createRdvVideo = async (req, res) => {
   try {
-    const user = req.user
-    const { id } = req.params
+    const user = req.user;
+    const { id } = req.params;
 
-    if (!user || user.role !== "MEDECIN") {
-      return res.status(403).json({ success: false, message: "Accès interdit" })
+    if (!user || user.role !== 'MEDECIN') {
+      return res.status(403).json({ success: false, message: 'Accès interdit' });
     }
 
     // Vérifier que le rendez-vous existe
     const rdv = await prisma.rendezvous.findUnique({
       where: { id },
       include: { patient: true, medecin: true },
-    })
+    });
 
     if (!rdv) {
-      return res.status(404).json({ success: false, message: "Rendez-vous introuvable" })
+      return res.status(404).json({ success: false, message: 'Rendez-vous introuvable' });
     }
 
     // Créer une salle Daily.co
@@ -296,31 +296,31 @@ export const createRdvVideo = async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
-    )
+    );
 
     // Sauvegarde de l’URL dans la DB
     const updatedRdv = await prisma.rendezVous.update({
       where: { id },
       data: { videoUrl: response.data.url },
-    })
+    });
 
     return res.status(201).json({
       success: true,
-      message: "Salle vidéo créée avec succès",
+      message: 'Salle vidéo créée avec succès',
       url: response.data.url,
       rdv: updatedRdv,
-    })
+    });
   } catch (error) {
-    console.error("Erreur Daily.co :", error.response?.data || error.message)
+    console.error('Erreur Daily.co :', error.response?.data || error.message);
     return res.status(500).json({
       success: false,
-      message: "Erreur serveur lors de la création de la salle vidéo",
-    })
+      message: 'Erreur serveur lors de la création de la salle vidéo',
+    });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous/:id/video
@@ -329,23 +329,23 @@ export const createRdvVideo = async (req, res) => {
  */
 export const joinRdvVideo = async (req, res) => {
   try {
-    const user = req.user
-    const { id } = req.params
+    const user = req.user;
+    const { id } = req.params;
 
-    if (!user || !["PATIENT", "MEDECIN"].includes(user.role)) {
-      return res.status(403).json({ success: false, message: "Accès interdit" })
+    if (!user || !['PATIENT', 'MEDECIN'].includes(user.role)) {
+      return res.status(403).json({ success: false, message: 'Accès interdit' });
     }
 
     // Vérifier que le RDV existe et qu'il a une salle
     const rdv = await prisma.rendezvous.findUnique({
       where: { id },
-    })
+    });
 
     if (!rdv || !rdv.videoUrl) {
       return res.status(404).json({
         success: false,
-        message: "Salle vidéo introuvable pour ce rendez-vous",
-      })
+        message: 'Salle vidéo introuvable pour ce rendez-vous',
+      });
     }
 
     // Générer un token d’accès pour la salle Daily.co
@@ -353,31 +353,31 @@ export const joinRdvVideo = async (req, res) => {
       `${process.env.DAILY_API_URL}/meeting-tokens`,
       {
         properties: {
-          room_name: rdv.videoUrl.split("/").pop(), // récupère le nom de la salle
+          room_name: rdv.videoUrl.split('/').pop(), // récupère le nom de la salle
           user_name: `${user.prenom} ${user.nom}`,
         },
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
-    )
+    );
 
     return res.status(200).json({
       success: true,
       url: rdv.videoUrl,
       token: response.data.token,
-    })
+    });
   } catch (error) {
-    console.error("Erreur join salle vidéo :", error.response?.data || error.message)
+    console.error('Erreur join salle vidéo :', error.response?.data || error.message);
     return res.status(500).json({
       success: false,
-      message: "Erreur serveur lors de la connexion à la salle vidéo",
-    })
+      message: 'Erreur serveur lors de la connexion à la salle vidéo',
+    });
   }
-}
+};
 
 /**
  * @route   GET /api/rendez-vous/:id
@@ -386,13 +386,13 @@ export const joinRdvVideo = async (req, res) => {
  */
 export const getRdvById = async (req, res) => {
   try {
-    const { id } = req.params
-    const user = req.user
+    const { id } = req.params;
+    const user = req.user;
 
     // Vérifier que l'ID est bien un entier
-    const rdvId = parseInt(id, 10)
+    const rdvId = parseInt(id, 10);
     if (isNaN(rdvId)) {
-      return res.status(400).json({ error: "ID de rendez-vous invalide." })
+      return res.status(400).json({ error: 'ID de rendez-vous invalide.' });
     }
 
     // Récupérer le rendez-vous
@@ -402,24 +402,24 @@ export const getRdvById = async (req, res) => {
         patient: true,
         medecin: true,
       },
-    })
+    });
 
     if (!rdv) {
-      return res.status(404).json({ error: "Rendez-vous non trouvé." })
+      return res.status(404).json({ error: 'Rendez-vous non trouvé.' });
     }
 
     // Vérifier les permissions selon le rôle de l'utilisateur
-    if (user.role === "MEDECIN" && rdv.medecinId !== user.id) {
-      return res.status(403).json({ error: "Accès interdit à ce rendez-vous." })
+    if (user.role === 'MEDECIN' && rdv.medecinId !== user.id) {
+      return res.status(403).json({ error: 'Accès interdit à ce rendez-vous.' });
     }
 
-    if (user.role === "PATIENT" && rdv.patientId !== user.id) {
-      return res.status(403).json({ error: "Accès interdit à ce rendez-vous." })
+    if (user.role === 'PATIENT' && rdv.patientId !== user.id) {
+      return res.status(403).json({ error: 'Accès interdit à ce rendez-vous.' });
     }
 
-    res.json(rdv)
+    res.json(rdv);
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Erreur lors de la récupération du rendez-vous." })
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la récupération du rendez-vous.' });
   }
-}
+};

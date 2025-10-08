@@ -1,4 +1,4 @@
-import { Router } from "express"
+import { Router } from 'express';
 import {
   createRdv,
   getRdv,
@@ -9,27 +9,27 @@ import {
   joinRdvVideo,
   cancelRdv,
   getRdvById,
-} from "../controllers/rdv.controller.js"
-import { medecinOnly, authenticate, adminOnly } from "../middlewares/auth.middleware.js"
+} from '../controllers/rdv.controller.js';
+import { medecinOnly, authenticate, adminOnly } from '../middlewares/auth.middleware.js';
 
-const rdvRouter = Router()
+const rdvRouter = Router();
 
-rdvRouter.post("/", authenticate, medecinOnly, createRdv)
+rdvRouter.post('/', authenticate, medecinOnly, createRdv);
 
-rdvRouter.get("/", authenticate, adminOnly, getRdv)
+rdvRouter.get('/', authenticate, adminOnly, getRdv);
 
-rdvRouter.get("/:id", authenticate, getRdvById)
+rdvRouter.get('/:id', authenticate, getRdvById);
 
-rdvRouter.get("/?statut=XXX", authenticate, getRdvByStatut)
+rdvRouter.get('/?statut=XXX', authenticate, getRdvByStatut);
 
-rdvRouter.get("/patient/me", authenticate, getRdvByPatient)
+rdvRouter.get('/patient/me', authenticate, getRdvByPatient);
 
-rdvRouter.get("/medecin/me", authenticate, medecinOnly, getRdvByMedecin)
+rdvRouter.get('/medecin/me', authenticate, medecinOnly, getRdvByMedecin);
 
-rdvRouter.put("/:id/cancel", authenticate, medecinOnly, cancelRdv)
+rdvRouter.put('/:id/cancel', authenticate, medecinOnly, cancelRdv);
 
-rdvRouter.post("/:id/video", authenticate, medecinOnly, createRdvVideo)
+rdvRouter.post('/:id/video', authenticate, medecinOnly, createRdvVideo);
 
-rdvRouter.get("/:id/video", authenticate, joinRdvVideo)
+rdvRouter.get('/:id/video', authenticate, joinRdvVideo);
 
-export default rdvRouter
+export default rdvRouter;
