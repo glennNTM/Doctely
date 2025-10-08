@@ -111,7 +111,7 @@ export const getMedecinConsultations = async (req, res) => {
       message: "Erreur serveur lors de la récupération des consultations.",
     });
   }
-};
+}
 
 /**
  * @route   GET /api/demande-consultation/patient/me
@@ -220,27 +220,29 @@ export const acceptConsultation = async (req, res) => {
 };
 
 /**
- * @route   POST /api/demande-medecin/:id/reject
+ * @route   POST /api/demande-consultation/:id/delete
  * @desc    Refuser une demande de consultation
  * @access  Medecin uniquement
  */
-export const rejectConsultation = async (req, res) => {
+export const deleteConsultation = async (req, res) => {
   try {
+    // Récupération de l'ID de la demande depuis les paramètres de la requête
     const user = req.user;
     const demandeId = parseInt(req.params.id, 10);
-
+    // Vérifie si l'utilisateur est un médecin
     if (!user || user.role !== "MEDECIN") {
       return res.status(403).json({
         error:
           "Accès interdit. Seuls les médecins peuvent effectuer cette action.",
       });
     }
-
+    // Récupération du médecin connecté
     const medecin = await prisma.medecin.findUnique({ where: { id: user.id } });
     if (!medecin) {
       return res.status(404).json({ error: "Médecin non trouvé." });
     }
-
+    // Vérifie si la demande existe
+    // Récupération de la demande
     const demande = await prisma.demandeConsultation.findUnique({
       where: { id: demandeId },
     });
@@ -254,24 +256,18 @@ export const rejectConsultation = async (req, res) => {
           "Vous ne pouvez refuser que les demandes correspondant à votre spécialité.",
       });
     }
-
-    if (demande.statut !== "EN_ATTENTE") {
-      return res
-        .status(400)
-        .json({ error: "Cette demande a déjà été traitée." });
-    }
-
-    const updatedDemande = await prisma.demandeConsultation.update({
+    // Suppression de la demande
+    await prisma.demandeConsultation.delete({
       where: { id: demandeId },
-      data: {
-        statut: "REFUSE",
-        medecinId: medecin.id,
-      },
     });
 
-    return res.status(200).json(updatedDemande);
+    // Retourne une réponse de succès
+    return res.status(200, {
+      success: true,
+      message: "Demande de consultation supprimée avec succès.",
+    });
   } catch (error) {
-    console.error("Erreur lors du refus :", error);
+    console.error("Erreur lors de la suppression :", error);
     return res.status(500).json({ error: "Erreur serveur." });
   }
-};
+}

@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { submitConsultation, getMedecinConsultations, acceptConsultation, rejectConsultation, getConsultations } from "../controllers/demandeConsultation.controller.js"
+import { submitConsultation, getMedecinConsultations, acceptConsultation, deleteConsultation, getConsultations } from "../controllers/demandeConsultation.controller.js"
 import { authenticate, medecinOnly, patientOnly } from "../middlewares/auth.middleware.js"
 
 
@@ -13,7 +13,7 @@ demandeConsultationRouter.get('/patient/me', authenticate, patientOnly, getConsu
 
 demandeConsultationRouter.put('/:id/accept', authenticate, medecinOnly, acceptConsultation )
 
-demandeConsultationRouter.put('/:id/reject', authenticate, medecinOnly, rejectConsultation )
+demandeConsultationRouter.delete('/:id/delete', authenticate, medecinOnly, deleteConsultation )
 
 
 export default demandeConsultationRouter

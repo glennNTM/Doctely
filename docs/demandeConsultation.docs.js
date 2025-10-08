@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Demandes de consultation
- *   description: Routes liées aux demandes de consultation entre patients et médecins
+ *   description: Routes liées aux demandes de consultation entre patients et médecins. Les notifications de RDV imminent sont vérifiées chaque minute par le planificateur.
  */
 
 /**
@@ -68,7 +68,7 @@
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Liste des demandes du patient
+ *         description: Liste des demandes du patient (tableau brut)
  *       403:
  *         description: Accès interdit, réservé aux patients
  *       500:
@@ -106,10 +106,10 @@
 
 /**
  * @swagger
- * /api/demande-consultation/{id}/reject:
- *   put:
- *     summary: Refuser une demande de consultation
- *     description: Le médecin refuse une demande de consultation.
+ * /api/demande-consultation/{id}/delete:
+ *   delete:
+ *     summary: Supprimer une demande de consultation
+ *     description: Le médecin supprime une demande de consultation.
  *     tags: [Demandes de consultation]
  *     security:
  *       - bearerAuth: []
@@ -119,16 +119,16 @@
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID de la demande à refuser
+ *         description: ID de la demande à supprimer
  *     responses:
  *       200:
- *         description: Demande refusée
+ *         description: Demande supprimée avec succès
  *       403:
  *         description: Accès interdit ou spécialité incompatible
  *       404:
- *         description: Médecin ou demande non trouvée
+ *         description: Demande non trouvée
  *       400:
- *         description: Demande déjà traitée
+ *         description: Erreur de requête
  *       500:
  *         description: Erreur serveur
  */

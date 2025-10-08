@@ -22,14 +22,13 @@ const app = express();
 
 setupSwagger(app);
 
-// Middleware pour gérer les CORS (incluant Swagger UI)
+// Middleware pour gérer les CORS
 app.use(
   cors({
     origin: [
       "http://localhost:8080",
       "https://doctely.netlify.app",
-      "http://localhost:10000", // Pour Swagger UI
-      "http://127.0.0.1:10000", // Alternative localhost
+      `http://localhost:${PORT}`, // Port dynamique pour Swagger UI
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -75,7 +74,7 @@ app.get("/", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Le serveur tourne sur http://localhost:${PORT}`);
+  console.log(`Le serveur du backend est démarré sur http://localhost:${PORT}`);
 });
 
 export default app;
