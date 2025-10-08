@@ -1,19 +1,23 @@
-import { Router } from "express"
-import { getMedecins, createMedecin, deleteMedecin, getMedecinById, getMedecinsBySpecialite } from "../controllers/medecins.controller.js"
-import { authenticate, adminOnly } from "../middlewares/auth.middleware.js"
+import { Router } from 'express';
+import {
+  getMedecins,
+  createMedecin,
+  deleteMedecin,
+  getMedecinById,
+  getMedecinsBySpecialite,
+} from '../controllers/medecins.controller.js';
+import { authenticate, adminOnly } from '../middlewares/auth.middleware.js';
 
+const medecinsRouter = Router();
 
+medecinsRouter.get('/', authenticate, adminOnly, getMedecins);
 
-const medecinsRouter = Router()
+medecinsRouter.get('/:id', authenticate, adminOnly, getMedecinById);
 
-medecinsRouter.get('/', authenticate, adminOnly, getMedecins)
+medecinsRouter.post('/', authenticate, adminOnly, createMedecin);
 
-medecinsRouter.get('/:id' , authenticate, adminOnly, getMedecinById)
+medecinsRouter.delete('/:id', authenticate, adminOnly, deleteMedecin);
 
-medecinsRouter.post('/' , authenticate, adminOnly, createMedecin)
+medecinsRouter.get('/:specialite', authenticate, adminOnly, getMedecinsBySpecialite);
 
-medecinsRouter.delete('/:id' , authenticate, adminOnly, deleteMedecin)
-
-medecinsRouter.get('/:specialite' , authenticate, adminOnly, getMedecinsBySpecialite)  
-
-export default medecinsRouter
+export default medecinsRouter;

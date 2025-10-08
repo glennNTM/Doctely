@@ -1,4 +1,4 @@
-import { PrismaClient } from "../generated/prisma/index.js";
+import { PrismaClient } from '../generated/prisma/index.js';
 
 const prisma = new PrismaClient();
 
@@ -7,14 +7,14 @@ const prisma = new PrismaClient();
  * @param {string} userRole - Rôle de l'utilisateur
  * @returns {string|null} Type de destinataire ou null si invalide
  */
-const getTypeDestinataire = (userRole) => {
+const getTypeDestinataire = userRole => {
   switch (userRole) {
-    case "PATIENT":
-      return "PATIENT";
-    case "MEDECIN":
-      return "MEDECIN";
-    case "ADMIN":
-      return "ADMIN";
+    case 'PATIENT':
+      return 'PATIENT';
+    case 'MEDECIN':
+      return 'MEDECIN';
+    case 'ADMIN':
+      return 'ADMIN';
     default:
       return null;
   }
@@ -36,7 +36,7 @@ export const getNotifications = async (req, res) => {
     if (!typeDestinataire) {
       return res.status(400).json({
         success: false,
-        message: "Type d'utilisateur non reconnu",
+        message: 'Type d\'utilisateur non reconnu',
       });
     }
 
@@ -44,10 +44,10 @@ export const getNotifications = async (req, res) => {
     const notifications = await prisma.notification.findMany({
       where: {
         destinataireId: userId,
-        typeDestinataire: typeDestinataire,
+        typeDestinataire,
       },
       orderBy: {
-        date: "desc", // Trier par date décroissante (plus récentes d'abord)
+        date: 'desc', // Trier par date décroissante (plus récentes d'abord)
       },
     });
 
@@ -58,10 +58,10 @@ export const getNotifications = async (req, res) => {
       data: notifications,
     });
   } catch (error) {
-    console.error("Erreur lors de la récupération des notifications:", error);
+    console.error('Erreur lors de la récupération des notifications:', error);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération des notifications",
+      message: 'Erreur lors de la récupération des notifications',
       error: error.message,
     });
   }
@@ -81,7 +81,7 @@ export const putNotificationToRead = async (req, res) => {
     if (isNaN(notificationId)) {
       return res.status(400).json({
         success: false,
-        message: "ID de notification invalide",
+        message: 'ID de notification invalide',
       });
     }
 
@@ -94,7 +94,7 @@ export const putNotificationToRead = async (req, res) => {
     if (!typeDestinataire) {
       return res.status(400).json({
         success: false,
-        message: "Type d'utilisateur non reconnu",
+        message: 'Type d\'utilisateur non reconnu',
       });
     }
 
@@ -103,15 +103,14 @@ export const putNotificationToRead = async (req, res) => {
       where: {
         id: notificationId,
         destinataireId: userId,
-        typeDestinataire: typeDestinataire,
+        typeDestinataire,
       },
     });
 
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message:
-          "Notification non trouvée ou vous n'êtes pas autorisé à y accéder",
+        message: 'Notification non trouvée ou vous n\'êtes pas autorisé à y accéder',
       });
     }
 
@@ -128,14 +127,14 @@ export const putNotificationToRead = async (req, res) => {
     // Retourner la notification mise à jour
     return res.status(200).json({
       success: true,
-      message: "Notification marquée comme lue",
+      message: 'Notification marquée comme lue',
       data: updatedNotification,
     });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de la notification:", error);
+    console.error('Erreur lors de la mise à jour de la notification:', error);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la mise à jour de la notification",
+      message: 'Erreur lors de la mise à jour de la notification',
       error: error.message,
     });
   }
@@ -155,7 +154,7 @@ export const deleteNotification = async (req, res) => {
     if (isNaN(notificationId)) {
       return res.status(400).json({
         success: false,
-        message: "ID de notification invalide",
+        message: 'ID de notification invalide',
       });
     }
 
@@ -168,7 +167,7 @@ export const deleteNotification = async (req, res) => {
     if (!typeDestinataire) {
       return res.status(400).json({
         success: false,
-        message: "Type d'utilisateur non reconnu",
+        message: 'Type d\'utilisateur non reconnu',
       });
     }
 
@@ -177,15 +176,14 @@ export const deleteNotification = async (req, res) => {
       where: {
         id: notificationId,
         destinataireId: userId,
-        typeDestinataire: typeDestinataire,
+        typeDestinataire,
       },
     });
 
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message:
-          "Notification non trouvée ou vous n'êtes pas autorisé à y accéder",
+        message: 'Notification non trouvée ou vous n\'êtes pas autorisé à y accéder',
       });
     }
 
@@ -199,13 +197,13 @@ export const deleteNotification = async (req, res) => {
     // Retourner une réponse de succès
     return res.status(200).json({
       success: true,
-      message: "Notification supprimée avec succès",
+      message: 'Notification supprimée avec succès',
     });
   } catch (error) {
-    console.error("Erreur lors de la suppression de la notification:", error);
+    console.error('Erreur lors de la suppression de la notification:', error);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la suppression de la notification",
+      message: 'Erreur lors de la suppression de la notification',
       error: error.message,
     });
   }

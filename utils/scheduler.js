@@ -1,7 +1,7 @@
 // utils/scheduler.js
-import cron from "node-cron";
-import { PrismaClient } from "../generated/prisma/index.js";
-import { notifyRdvTime } from "./notifications.js";
+import cron from 'node-cron';
+import { PrismaClient } from '../generated/prisma/index.js';
+import { notifyRdvTime } from './notifications.js';
 
 const prisma = new PrismaClient();
 
@@ -24,7 +24,7 @@ const checkUpcomingRdv = async () => {
     // Step 1: Récupérer tous les RDV planifiés pour aujourd'hui
     const todayRdv = await prisma.rendezvous.findMany({
       where: {
-        statut: "PLANIFIE",
+        statut: 'PLANIFIE',
         date: {
           gte: today,
           lt: tomorrow,
@@ -39,7 +39,7 @@ const checkUpcomingRdv = async () => {
     // Step 2: Vérifier chaque RDV pour voir s'il commence bientôt
     for (const rdv of todayRdv) {
       // Construire la date/heure exacte du RDV
-      const [heures, minutes] = rdv.heure.split(":").map(Number);
+      const [heures, minutes] = rdv.heure.split(':').map(Number);
       const rdvDateTime = new Date(rdv.date);
       rdvDateTime.setHours(heures, minutes, 0, 0);
 
@@ -56,20 +56,17 @@ const checkUpcomingRdv = async () => {
       }
     }
   } catch (error) {
-    console.error("Erreur vérification RDV:", error);
+    console.error('Erreur vérification RDV:', error);
 
     // Tentative de reconnexion si erreur de connexion
-    if (
-      error.code === "P1001" ||
-      error.message.includes("Can't reach database")
-    ) {
-      console.log("Tentative de reconnexion à la base de données...");
+    if (error.code === 'P1001' || error.message.includes('Can\'t reach database')) {
+      console.log('Tentative de reconnexion à la base de données...');
       try {
         await prisma.$disconnect();
         await prisma.$connect();
-        console.log("Reconnexion réussie");
+        console.log('Reconnexion réussie');
       } catch (reconnectError) {
-        console.error("Échec de la reconnexion:", reconnectError.message);
+        console.error('Échec de la reconnexion:', reconnectError.message);
       }
     }
   } finally {
@@ -84,10 +81,10 @@ const checkUpcomingRdv = async () => {
  */
 export const initScheduler = () => {
   // Tâche cron : vérifier chaque minute (* * * * *)
-  cron.schedule("* * * * *", () => {
-    console.log("Vérification des RDV imminents (toutes les 1 minute)...");
+  cron.schedule('* * * * *', () => {
+    console.log('Vérification des RDV imminents (toutes les 1 minute)...');
     checkUpcomingRdv();
   });
 
-  console.log("Planificateur de RDV initialisé - vérification chaque minute");
+  console.log('Planificateur de RDV initialisé - vérification chaque minute');
 };

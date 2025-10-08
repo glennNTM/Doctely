@@ -3,14 +3,12 @@
 ## Notifications (3 scénarios)
 
 - **SCÉNARIO 1 — Nouvelle demande**
-
   - **Déclencheur**: Un patient soumet une demande avec une spécialité.
   - **Destinataires**: Tous les médecins de cette spécialité.
   - **Événement Socket**: `nouvelle_notification`
   - **Type**: `NOUVELLE_DEMANDE`
 
 - **SCÉNARIO 2 — Demande acceptée**
-
   - **Déclencheur**: Un médecin accepte une demande.
   - **Destinataire**: Le patient concerné.
   - **Événement Socket**: `nouvelle_notification`
@@ -32,22 +30,18 @@
 ## Flux Demandes de Consultation
 
 - **Création par le patient**
-
   - Endpoint: `POST /api/demande-consultation`
   - Effet: enregistre la demande (`EN_ATTENTE`) et notifie tous les médecins de la spécialité (SCÉNARIO 1).
 
 - **Consultation côté médecin**
-
   - Endpoint: `GET /api/demande-consultation/medecin/me`
   - Retour: demandes `EN_ATTENTE` correspondant à la spécialité du médecin connecté.
 
 - **Consultation côté patient**
-
   - Endpoint: `GET /api/demande-consultation/patient/me`
   - Retour: tableau brut des demandes du patient connecté.
 
 - **Acceptation par un médecin**
-
   - Endpoint: `PUT /api/demande-consultation/:id/accept`
   - Règle métier: il n’y a pas de refus explicite.
   - Effets attendus:

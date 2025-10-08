@@ -1,8 +1,5 @@
-import { PrismaClient, Specialite } from "../generated/prisma/index.js";
-import {
-  notifyMedecinsNewDemande,
-  notifyPatientDemandeAccepted,
-} from "../utils/notifications.js";
+import { PrismaClient, Specialite } from '../generated/prisma/index.js';
+import { notifyMedecinsNewDemande, notifyPatientDemandeAccepted } from '../utils/notifications.js';
 
 const prisma = new PrismaClient();
 
@@ -20,13 +17,13 @@ export const submitConsultation = async (req, res) => {
     if (!specialite || !motif) {
       return res.status(400).json({
         success: false,
-        message: "Les champs spécialité et motif sont obligatoires.",
+        message: 'Les champs spécialité et motif sont obligatoires.',
       });
     }
     // On verifie si la specialiete est valide
     const specialitesEnum = Object.values(Specialite);
     if (!specialitesEnum.includes(specialite)) {
-      return res.status(400).json({ message: "Spécialité invalide." });
+      return res.status(400).json({ message: 'Spécialité invalide.' });
     }
     // Step 1: Récupérer les infos du patient pour les notifications
     const patient = await prisma.patient.findUnique({
@@ -40,7 +37,7 @@ export const submitConsultation = async (req, res) => {
         patientId: req.user.id,
         specialite,
         motif,
-        statut: "EN_ATTENTE",
+        statut: 'EN_ATTENTE',
       },
     });
 
@@ -53,11 +50,10 @@ export const submitConsultation = async (req, res) => {
       data: newConsultation,
     });
   } catch (error) {
-    console.error("Erreur POST /api/demande-consultation :", error);
+    console.error('Erreur POST /api/demande-consultation :', error);
     return res.status(500).json({
       success: false,
-      message:
-        "Erreur interne du serveur. Impossible de soumettre la demande de consultation.",
+      message: 'Erreur interne du serveur. Impossible de soumettre la demande de consultation.',
     });
   }
 };
@@ -72,11 +68,10 @@ export const getMedecinConsultations = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user || user.role !== "MEDECIN") {
+    if (!user || user.role !== 'MEDECIN') {
       return res.status(403).json({
         success: false,
-        message:
-          "Accès interdit. Seuls les médecins peuvent accéder à cette ressource.",
+        message: 'Accès interdit. Seuls les médecins peuvent accéder à cette ressource.',
       });
     }
 
@@ -87,13 +82,13 @@ export const getMedecinConsultations = async (req, res) => {
     if (!medecin) {
       return res.status(404).json({
         success: false,
-        message: "Médecin non trouvé.",
+        message: 'Médecin non trouvé.',
       });
     }
 
     const consultations = await prisma.demandeConsultation.findMany({
       where: {
-        statut: "EN_ATTENTE",
+        statut: 'EN_ATTENTE',
         specialite: medecin.specialite,
       },
       include: { patient: true },
@@ -105,13 +100,13 @@ export const getMedecinConsultations = async (req, res) => {
       data: consultations,
     });
   } catch (error) {
-    console.error("Erreur lors de la récupération des consultations :", error);
+    console.error('Erreur lors de la récupération des consultations :', error);
     return res.status(500).json({
       success: false,
-      message: "Erreur serveur lors de la récupération des consultations.",
+      message: 'Erreur serveur lors de la récupération des consultations.',
     });
   }
-}
+};
 
 /**
  * @route   GET /api/demande-consultation/patient/me
@@ -122,10 +117,9 @@ export const getConsultations = async (req, res) => {
   try {
     const user = req.user;
     // Vérifie que l'utilisateur est bien un patient
-    if (!user || user.role !== "PATIENT") {
+    if (!user || user.role !== 'PATIENT') {
       return res.status(403).json({
-        error:
-          "Accès interdit. Seuls les patients peuvent accéder à cette ressource.",
+        error: 'Accès interdit. Seuls les patients peuvent accéder à cette ressource.',
       });
     }
 
@@ -141,9 +135,9 @@ export const getConsultations = async (req, res) => {
 
     return res.status(200).json(consultations);
   } catch (error) {
-    console.error("Erreur lors de la récupération des consultations :", error);
+    console.error('Erreur lors de la récupération des consultations :', error);
     return res.status(500).json({
-      error: "Erreur serveur lors de la récupération des consultations.",
+      error: 'Erreur serveur lors de la récupération des consultations.',
     });
   }
 };
@@ -159,17 +153,16 @@ export const acceptConsultation = async (req, res) => {
     const demandeId = parseInt(req.params.id, 10);
 
     // Vérifie si l'utilisateur est un médecin
-    if (!user || user.role !== "MEDECIN") {
+    if (!user || user.role !== 'MEDECIN') {
       return res.status(403).json({
-        error:
-          "Accès interdit. Seuls les médecins peuvent effectuer cette action.",
+        error: 'Accès interdit. Seuls les médecins peuvent effectuer cette action.',
       });
     }
 
     // Récupère le médecin connecté
     const medecin = await prisma.medecin.findUnique({ where: { id: user.id } });
     if (!medecin) {
-      return res.status(404).json({ error: "Médecin non trouvé." });
+      return res.status(404).json({ error: 'Médecin non trouvé.' });
     }
 
     // Récupère la demande
@@ -177,45 +170,38 @@ export const acceptConsultation = async (req, res) => {
       where: { id: demandeId },
     });
     if (!demande) {
-      return res.status(404).json({ error: "Demande non trouvée." });
+      return res.status(404).json({ error: 'Demande non trouvée.' });
     }
 
     // Vérifie que la spécialité correspond
     if (demande.specialite !== medecin.specialite) {
       return res.status(403).json({
-        error:
-          "Vous ne pouvez accepter que les demandes correspondant à votre spécialité.",
+        error: 'Vous ne pouvez accepter que les demandes correspondant à votre spécialité.',
       });
     }
 
     // Vérifie que la demande est en attente
-    if (demande.statut !== "EN_ATTENTE") {
-      return res
-        .status(400)
-        .json({ error: "Cette demande a déjà été traitée." });
+    if (demande.statut !== 'EN_ATTENTE') {
+      return res.status(400).json({ error: 'Cette demande a déjà été traitée.' });
     }
 
     // Step 1: Mise à jour de la demande en base
     const updatedDemande = await prisma.demandeConsultation.update({
       where: { id: demandeId },
       data: {
-        statut: "ACCEPTE",
+        statut: 'ACCEPTE',
         medecinId: medecin.id,
       },
     });
 
     // Step 2: SCENARIO 2 - Notifier le patient de l'acceptation
     const medecinName = `${medecin.prenom} ${medecin.nom}`;
-    await notifyPatientDemandeAccepted(
-      updatedDemande.patientId,
-      medecinName,
-      updatedDemande.specialite
-    );
+    await notifyPatientDemandeAccepted(updatedDemande.patientId, medecinName, updatedDemande.specialite);
 
     return res.status(200).json(updatedDemande);
   } catch (error) {
-    console.error("Erreur lors de l'acceptation :", error);
-    return res.status(500).json({ error: "Erreur serveur." });
+    console.error('Erreur lors de l\'acceptation :', error);
+    return res.status(500).json({ error: 'Erreur serveur.' });
   }
 };
 
@@ -230,16 +216,15 @@ export const deleteConsultation = async (req, res) => {
     const user = req.user;
     const demandeId = parseInt(req.params.id, 10);
     // Vérifie si l'utilisateur est un médecin
-    if (!user || user.role !== "MEDECIN") {
+    if (!user || user.role !== 'MEDECIN') {
       return res.status(403).json({
-        error:
-          "Accès interdit. Seuls les médecins peuvent effectuer cette action.",
+        error: 'Accès interdit. Seuls les médecins peuvent effectuer cette action.',
       });
     }
     // Récupération du médecin connecté
     const medecin = await prisma.medecin.findUnique({ where: { id: user.id } });
     if (!medecin) {
-      return res.status(404).json({ error: "Médecin non trouvé." });
+      return res.status(404).json({ error: 'Médecin non trouvé.' });
     }
     // Vérifie si la demande existe
     // Récupération de la demande
@@ -247,13 +232,12 @@ export const deleteConsultation = async (req, res) => {
       where: { id: demandeId },
     });
     if (!demande) {
-      return res.status(404).json({ error: "Demande non trouvée." });
+      return res.status(404).json({ error: 'Demande non trouvée.' });
     }
 
     if (demande.specialite !== medecin.specialite) {
       return res.status(403).json({
-        error:
-          "Vous ne pouvez refuser que les demandes correspondant à votre spécialité.",
+        error: 'Vous ne pouvez refuser que les demandes correspondant à votre spécialité.',
       });
     }
     // Suppression de la demande
@@ -264,10 +248,10 @@ export const deleteConsultation = async (req, res) => {
     // Retourne une réponse de succès
     return res.status(200, {
       success: true,
-      message: "Demande de consultation supprimée avec succès.",
+      message: 'Demande de consultation supprimée avec succès.',
     });
   } catch (error) {
-    console.error("Erreur lors de la suppression :", error);
-    return res.status(500).json({ error: "Erreur serveur." });
+    console.error('Erreur lors de la suppression :', error);
+    return res.status(500).json({ error: 'Erreur serveur.' });
   }
-}
+};
