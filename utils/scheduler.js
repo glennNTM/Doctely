@@ -13,6 +13,9 @@ const prisma = new PrismaClient();
  */
 const checkUpcomingRdv = async () => {
   try {
+    // Vérifier la connexion à la base de données
+    await prisma.$connect();
+
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrow = new Date(today);
@@ -54,17 +57,35 @@ const checkUpcomingRdv = async () => {
     }
   } catch (error) {
     console.error("Erreur vérification RDV:", error);
+
+    // Tentative de reconnexion si erreur de connexion
+    if (
+      error.code === "P1001" ||
+      error.message.includes("Can't reach database")
+    ) {
+      console.log("Tentative de reconnexion à la base de données...");
+      try {
+        await prisma.$disconnect();
+        await prisma.$connect();
+        console.log("Reconnexion réussie");
+      } catch (reconnectError) {
+        console.error("Échec de la reconnexion:", reconnectError.message);
+      }
+    }
+  } finally {
+    // S'assurer que la connexion est fermée proprement
+    await prisma.$disconnect();
   }
 };
 
 /**
  * Initialiser le planificateur automatique
- * Vérifie toutes les minutes s'il y a des RDV imminents
+ * Vérifie chaque minute s'il y a des RDV imminents
  */
 export const initScheduler = () => {
   // Tâche cron : vérifier chaque minute (* * * * *)
   cron.schedule("* * * * *", () => {
-    console.log("Vérification des RDV imminents...");
+    console.log("Vérification des RDV imminents (toutes les 1 minute)...");
     checkUpcomingRdv();
   });
 
